@@ -161,7 +161,99 @@ const GlobalStyles = ({ color }) => {
       svg { shape-rendering: crispEdges; }
       input { border: none !important; outline: none !important; }
       .responsive-text-huge { font-size: clamp(2rem, 10vw, 4rem); }
-      .responsive-text-huge { font-size: clamp(2rem, 10vw, 4rem); }
+
+      /* Desktop Layout - applies at lg breakpoint (1024px+) */
+      @media (min-width: 1024px) {
+        .desktop-layout {
+          display: grid;
+          grid-template-columns: 280px 1fr 320px;
+          gap: 2rem;
+          max-width: 1600px;
+          margin: 0 auto;
+          padding: 2rem;
+          min-height: 100vh;
+        }
+        .desktop-left-sidebar {
+          position: sticky;
+          top: 2rem;
+          height: fit-content;
+          max-height: calc(100vh - 4rem);
+          overflow-y: auto;
+        }
+        .desktop-main-content {
+          min-height: calc(100vh - 4rem);
+          padding-bottom: 2rem;
+        }
+        .desktop-right-sidebar {
+          position: sticky;
+          top: 2rem;
+          height: fit-content;
+          max-height: calc(100vh - 4rem);
+          overflow-y: auto;
+        }
+        .desktop-nav-sidebar {
+          position: fixed;
+          left: 0;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 70px;
+          background: rgba(0, 0, 0, 0.95);
+          backdrop-filter: blur(24px);
+          border-radius: 0 2rem 2rem 0;
+          padding: 1.5rem 0.75rem;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 1rem;
+          z-index: 200;
+          border: 1px solid rgba(255,255,255,0.1);
+          border-left: none;
+        }
+        .desktop-nav-sidebar button {
+          width: 48px;
+          height: 48px;
+          border-radius: 1rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s;
+        }
+        .desktop-nav-sidebar button:hover:not(.desktop-fab) {
+          background: rgba(255,255,255,0.05);
+        }
+        .desktop-nav-sidebar .nav-active {
+          color: var(--theme-primary);
+          filter: drop-shadow(0 0 8px var(--theme-glow));
+        }
+        .desktop-fab {
+          width: 56px !important;
+          height: 56px !important;
+          margin: 0.5rem 0;
+          animation: pulse-nav 2s infinite;
+        }
+        .desktop-fab:hover {
+          filter: brightness(1.1);
+        }
+        .mobile-only {
+          display: none !important;
+        }
+        .desktop-only {
+          display: block !important;
+        }
+        /* Adjust main container for desktop */
+        .desktop-layout .cute-card {
+          border-radius: 1.5rem;
+        }
+      }
+
+      /* Mobile-first: hide desktop elements by default */
+      .desktop-only {
+        display: none;
+      }
+      /* Ensure mobile-only elements display on mobile (they use flex) */
+      .mobile-only {
+        display: flex;
+      }
     `}</style>
   );
 };
@@ -771,6 +863,182 @@ const RecurringExpensesView = ({ dues, setDues, onComplete, handleNumericInput }
   );
 };
 
+const MealTrackerView = ({ mealTracker, setMealTracker }) => {
+  const MEAL_COST = 50;
+  const todayStr = new Date().toISOString().split('T')[0];
+  const [fundAmount, setFundAmount] = useState('');
+  const [showAddFunds, setShowAddFunds] = useState(false);
+
+  // Get today's meals
+  const todayEntry = mealTracker.mealLog.find(m => m.date === todayStr);
+  const todayMeals = todayEntry ? todayEntry.count : 0;
+
+  // Remaining meals calculation (can be negative)
+  const remainingMeals = Math.floor(mealTracker.balance / MEAL_COST);
+  const isLowBalance = mealTracker.balance < 200;
+  const isNegative = mealTracker.balance < 0;
+
+  // Add meals for today (allow even if negative)
+  const addMeals = (count) => {
+    const cost = count * MEAL_COST;
+    setMealTracker(prev => {
+      const existingEntry = prev.mealLog.find(m => m.date === todayStr);
+      let newLog;
+      if (existingEntry) {
+        newLog = prev.mealLog.map(m => m.date === todayStr ? { ...m, count: m.count + count } : m);
+      } else {
+        newLog = [...prev.mealLog, { date: todayStr, count }];
+      }
+      return { balance: prev.balance - cost, mealLog: newLog };
+    });
+  };
+
+  // Add funds
+  const handleAddFunds = () => {
+    const amount = parseFloat(fundAmount);
+    if (isNaN(amount) || amount <= 0) return;
+    setMealTracker(prev => ({ ...prev, balance: prev.balance + amount }));
+    setFundAmount('');
+    setShowAddFunds(false);
+  };
+
+  return (
+    <div className="w-full flex flex-col pt-0 animate-in fade-in pb-20">
+      <h2 className="text-2xl sm:text-3xl font-black text-white mb-6 tracking-tighter uppercase px-2 text-center">Meal Tracker</h2>
+
+      {/* Balance Card */}
+      <div className={`cute-card p-6 shadow-2xl mb-6 relative overflow-hidden ${isNegative ? 'ring-2 ring-rose-500' : isLowBalance ? 'ring-2 ring-amber-500/50' : ''}`}>
+        <div className="absolute -top-10 -right-10 opacity-5 rotate-12">
+          <Utensils size={160} />
+        </div>
+
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1">Prepaid Balance</p>
+            <h3 className={`text-4xl font-black font-mono ${isNegative ? 'text-rose-400' : 'text-white'}`}>৳{mealTracker.balance}</h3>
+          </div>
+          <div className={`text-right ${isNegative ? 'text-rose-400' : isLowBalance ? 'text-amber-400' : 'text-emerald-400'}`}>
+            <p className="text-[9px] font-black uppercase tracking-widest mb-1">{isNegative ? 'Due' : 'Meals Left'}</p>
+            <p className="text-3xl font-black font-mono">{isNegative ? Math.abs(remainingMeals) : remainingMeals}</p>
+          </div>
+        </div>
+
+        {(isLowBalance || isNegative) && (
+          <div className={`${isNegative ? 'bg-rose-500/20 border-rose-500/30' : 'bg-amber-500/20 border-amber-500/30'} border rounded-xl p-3 mb-4 flex items-center gap-2`}>
+            <div className={`w-2 h-2 rounded-full ${isNegative ? 'bg-rose-500' : 'bg-amber-500'} animate-pulse`} />
+            <p className={`text-[10px] font-black uppercase tracking-widest ${isNegative ? 'text-rose-300' : 'text-amber-300'}`}>
+              {isNegative ? 'You owe the catering service!' : 'Low Balance - Time to top up!'}
+            </p>
+          </div>
+        )}
+
+        {showAddFunds ? (
+          <div className="flex gap-2">
+            <input
+              type="number"
+              value={fundAmount}
+              onChange={(e) => setFundAmount(e.target.value)}
+              placeholder="Amount"
+              className="flex-1 py-3 px-4 bg-black/40 rounded-xl text-white font-mono text-center border border-indigo-500/30 focus:border-emerald-500 outline-none"
+            />
+            <button
+              onClick={handleAddFunds}
+              className="px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-black rounded-xl text-[10px] uppercase tracking-widest shadow-lg transition-all active:scale-95"
+            >
+              Add
+            </button>
+            <button
+              onClick={() => { setShowAddFunds(false); setFundAmount(''); }}
+              className="px-4 py-3 bg-indigo-950/50 text-indigo-300 font-black rounded-xl text-[10px] uppercase tracking-widest transition-all"
+            >
+              ✕
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setShowAddFunds(true)}
+            className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-white font-black rounded-xl text-[10px] uppercase tracking-widest shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+          >
+            <PlusCircle size={16} /> Add Funds
+          </button>
+        )}
+      </div>
+
+      {/* Today's Meals */}
+      <div className="cute-card p-6 shadow-lg mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <p className="text-[10px] font-black theme-text uppercase tracking-widest">Today's Meals</p>
+          <div className="flex items-center gap-2 bg-indigo-950/40 px-3 py-1 rounded-full">
+            <Utensils size={14} className="text-indigo-400" />
+            <span className="text-lg font-black text-white font-mono">{todayMeals}</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            onClick={() => addMeals(1)}
+            className="py-4 bg-indigo-950/30 hover:bg-indigo-900/40 text-white font-black rounded-xl text-xs uppercase tracking-widest transition-all active:scale-95 flex flex-col items-center gap-1"
+          >
+            <span className="text-2xl">🍽️</span>
+            +1 Meal
+            <span className="text-[8px] text-indigo-400">-৳50</span>
+          </button>
+          <button
+            onClick={() => addMeals(2)}
+            className="py-4 bg-indigo-950/30 hover:bg-indigo-900/40 text-white font-black rounded-xl text-xs uppercase tracking-widest transition-all active:scale-95 flex flex-col items-center gap-1"
+          >
+            <span className="text-2xl">🍽️🍽️</span>
+            +2 Meals
+            <span className="text-[8px] text-indigo-400">-৳100</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Meal History - Full Log */}
+      <div className="cute-card p-6 shadow-lg">
+        <p className="text-[10px] font-black theme-text uppercase tracking-widest mb-4">Meal History</p>
+        <div className="max-h-64 overflow-y-auto space-y-2 scrollbar-thin scrollbar-thumb-indigo-500/20">
+          {mealTracker.mealLog.length === 0 ? (
+            <p className="text-center text-[10px] text-indigo-500/50 font-black uppercase py-4">No meals logged yet</p>
+          ) : (
+            [...mealTracker.mealLog]
+              .sort((a, b) => new Date(b.date) - new Date(a.date))
+              .map((entry) => {
+                const d = new Date(entry.date);
+                const isToday = entry.date === todayStr;
+                return (
+                  <div key={entry.date} className={`flex justify-between items-center p-3 rounded-xl ${isToday ? 'bg-indigo-950/40 border border-indigo-500/20' : 'bg-indigo-950/20'}`}>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-black text-indigo-400 w-10">{d.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                      <span className="text-[9px] text-indigo-300/50 font-mono">{entry.date.slice(5)}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm">{entry.count === 1 ? '🍽️' : '🍽️🍽️'}</span>
+                      <span className="text-xs font-black text-white">{entry.count} meal{entry.count > 1 ? 's' : ''}</span>
+                      <button
+                        onClick={() => {
+                          setMealTracker(prev => ({
+                            ...prev,
+                            balance: prev.balance + (entry.count * 50),
+                            mealLog: prev.mealLog.filter(m => m.date !== entry.date)
+                          }));
+                        }}
+                        className="p-1.5 text-indigo-500/50 hover:text-rose-400 transition-colors"
+                        title="Remove entry"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const CalendarPopup = ({ selectedDay, onSelect, onClose }) => {
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
   return (
@@ -836,7 +1104,7 @@ const App = () => {
     window.scrollTo(0, 0);
   }, [view]);
 
-  const [user, setUser] = useState({ name: '', income: '', savingsGoal: '', petType: 'cat', petColor: 'orange', petAccessory: 'none', activeTargetId: null });
+  const [user, setUser] = useState({ name: '', income: '', savingsGoal: '', petType: 'cat', petColor: 'orange', petAccessory: 'none', activeTargetId: null, cateringEnabled: false, cateringMonthlyCost: 3000 });
   const [expenses, setExpenses] = useState([]);
   const [streakData, setStreakData] = useState({});
   const [savingsTargets, setSavingsTargets] = useState([]);
@@ -846,6 +1114,7 @@ const App = () => {
   const [tutorialComplete, setTutorialComplete] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [popup, setPopup] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null, onCancel: null }); // Global Popup State
+  const [mealTracker, setMealTracker] = useState({ balance: 0, mealLog: [] }); // Meal tracker: { balance: number, mealLog: [{ date: string, count: number }] }
 
 
   const handleNumericInput = (val, setter, field = null) => {
@@ -866,6 +1135,7 @@ const App = () => {
       setMonthlyDues(parsed.monthlyDues || []);
       setLastRolloverDate(parsed.lastRolloverDate || new Date().toISOString().split('T')[0]);
       setTutorialComplete(parsed.tutorialComplete || false);
+      setMealTracker(parsed.mealTracker || { balance: 0, mealLog: [] });
 
       if (parsed.user?.name) {
         setView('dashboard');
@@ -925,8 +1195,8 @@ const App = () => {
 
 
   useEffect(() => {
-    if (isInitialized) localStorage.setItem(STORAGE_KEY, JSON.stringify({ user, expenses, streakData, tutorialComplete, savingsTargets, lastRolloverDate, monthlyDues }));
-  }, [user, expenses, streakData, tutorialComplete, savingsTargets, lastRolloverDate, monthlyDues, isInitialized]);
+    if (isInitialized) localStorage.setItem(STORAGE_KEY, JSON.stringify({ user, expenses, streakData, tutorialComplete, savingsTargets, lastRolloverDate, monthlyDues, mealTracker }));
+  }, [user, expenses, streakData, tutorialComplete, savingsTargets, lastRolloverDate, monthlyDues, mealTracker, isInitialized]);
 
   const finishTutorial = () => {
     setTutorialComplete(true);
@@ -939,12 +1209,13 @@ const App = () => {
     const monthlyIncome = parseFloat(user.income) || 0;
     const monthlyGoal = parseFloat(user.savingsGoal) || 0;
     const totalDues = monthlyDues.reduce((a, b) => a + (parseFloat(b.amount) || 0), 0);
-    const totalDisp = Math.max(0, monthlyIncome - monthlyGoal - totalDues);
+    const cateringCost = user.cateringEnabled ? (parseFloat(user.cateringMonthlyCost) || 0) : 0;
+    const totalDisp = Math.max(0, monthlyIncome - monthlyGoal - totalDues - cateringCost);
     const currMonthExp = expenses.filter(e => { const d = new Date(e.date); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
     const totalSpent = currMonthExp.reduce((a, b) => a + b.amount, 0);
     const spentToday = currMonthExp.filter(e => new Date(e.date).toDateString() === now.toDateString()).reduce((a, b) => a + b.amount, 0);
-    const budgetAllocatedToday = totalDisp / 30;
-    const dailyRem = budgetAllocatedToday - spentToday;
+    const budgetAllocatedToday = Math.round(totalDisp / 30);
+    const dailyRem = Math.round(budgetAllocatedToday - spentToday);
     const dailyProg = budgetAllocatedToday > 0 ? (dailyRem / budgetAllocatedToday) * 100 : 0;
 
     let mood = 'happy';
@@ -958,7 +1229,7 @@ const App = () => {
       return acc;
     }, {});
 
-    return { dailyBudget: budgetAllocatedToday, dailyRemaining: dailyRem, dailyProgress: dailyProg, mood, spentToday, totalSpentThisMonth: totalSpent, categoryTotals, todayStr };
+    return { dailyBudget: budgetAllocatedToday, dailyRemaining: dailyRem, dailyProgress: dailyProg, mood, spentToday, totalSpentThisMonth: totalSpent, categoryTotals, todayStr, cateringCost };
   }, [user, expenses, monthlyDues]);
 
   const activeTarget = savingsTargets.find(t => t.id === user.activeTargetId);
@@ -983,8 +1254,74 @@ const App = () => {
   return (
     <div className="min-h-screen w-full bg-[#0c0a1f] text-indigo-50 font-sans relative">
       <GlobalStyles color={user.petColor} />
-      <div className="w-full min-h-screen flex flex-col relative pb-32">
-        <main className="w-full max-w-3xl mx-auto p-6 md:p-12 relative flex flex-col gap-8">
+
+      {/* Desktop Navigation Sidebar - Only visible on lg+ screens */}
+      {view !== 'onboarding' && view !== 'dues-setup' && view !== 'edit-profile' && (
+        <div className="desktop-only desktop-nav-sidebar">
+          <button
+            onClick={() => setView('dashboard')}
+            className={view === 'dashboard' ? 'nav-active text-white' : 'text-indigo-300 hover:text-white'}
+            title="Home"
+          >
+            <Home size={24} />
+          </button>
+          <button
+            onClick={() => setView('history')}
+            className={view === 'history' ? 'nav-active text-white' : 'text-indigo-300 hover:text-white'}
+            title="History"
+          >
+            <History size={24} />
+          </button>
+
+          {/* Desktop FAB */}
+          <button
+            onClick={() => view === 'savings' ? setView('add-savings') : setView('add')}
+            className="desktop-fab theme-bg text-white rounded-full shadow-[0_0_20px_var(--theme-glow)] hover:brightness-110 transition-all"
+            title="Add"
+          >
+            <PlusCircle size={28} strokeWidth={2.5} />
+          </button>
+
+          <button
+            onClick={() => setView('savings')}
+            className={view === 'savings' ? 'nav-active text-white' : 'text-indigo-300 hover:text-white'}
+            title="Savings"
+          >
+            <PiggyBank size={24} />
+          </button>
+          {user.cateringEnabled && (
+            <button
+              onClick={() => setView('meals')}
+              className={view === 'meals' ? 'nav-active text-white' : 'text-indigo-300 hover:text-white'}
+              title="Meals"
+            >
+              <Utensils size={24} />
+            </button>
+          )}
+          {!user.cateringEnabled && (
+            <button
+              onClick={() => setView('settings')}
+              className={view === 'settings' ? 'nav-active text-white' : 'text-indigo-300 hover:text-white'}
+              title="Settings"
+            >
+              <Settings size={24} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Settings Button - Top Right (when catering enabled, shows on all pages except onboarding/settings) */}
+      {user.cateringEnabled && view !== 'onboarding' && view !== 'edit-profile' && view !== 'dues-setup' && view !== 'settings' && (
+        <button
+          onClick={() => setView('settings')}
+          className="fixed top-4 right-4 z-50 w-10 h-10 bg-black/80 backdrop-blur-sm rounded-full flex items-center justify-center text-indigo-300 hover:text-white transition-all shadow-lg ring-1 ring-white/10"
+        >
+          <Settings size={18} />
+        </button>
+      )}
+
+      <div className="w-full min-h-screen flex flex-col relative pb-32 lg:pb-8">
+        <main className="w-full max-w-3xl mx-auto p-6 md:p-12 lg:max-w-5xl relative flex flex-col gap-8">
           {view === 'onboarding' ? (
             <div className="w-full flex flex-col justify-center">
               <OnboardingView user={user} setUser={setUser} handleNumericInput={handleNumericInput} onComplete={() => setView('dues-setup')} />
@@ -1075,6 +1412,29 @@ const App = () => {
                   </div>
 
 
+                  {/* Meal Balance Summary (when catering enabled) */}
+                  {user.cateringEnabled && (
+                    <button
+                      onClick={() => setView('meals')}
+                      className={`w-full cute-card p-4 mb-4 flex items-center justify-between shadow-md transition-all hover:bg-white/5 ${mealTracker.balance < 0 ? 'ring-1 ring-rose-500/50' : mealTracker.balance < 200 ? 'ring-1 ring-amber-500/50' : ''}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${mealTracker.balance < 0 ? 'bg-rose-500/20 text-rose-400' : mealTracker.balance < 200 ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
+                          <Utensils size={18} />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Catering Balance</p>
+                          <p className={`text-lg font-black font-mono ${mealTracker.balance < 0 ? 'text-rose-400' : 'text-white'}`}>৳{mealTracker.balance}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[8px] font-black text-indigo-400 uppercase tracking-widest">{mealTracker.balance < 0 ? 'Due' : 'Meals Left'}</p>
+                        <p className={`text-xl font-black font-mono ${mealTracker.balance < 0 ? 'text-rose-400' : mealTracker.balance < 200 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                          {mealTracker.balance < 0 ? Math.abs(Math.floor(mealTracker.balance / 50)) : Math.floor(mealTracker.balance / 50)}
+                        </p>
+                      </div>
+                    </button>
+                  )}
 
                   {monthlyDues.length > 0 && (
                     <div className="w-full mb-2">
@@ -1258,6 +1618,10 @@ const App = () => {
                 />
               )}
 
+              {view === 'meals' && (
+                <MealTrackerView mealTracker={mealTracker} setMealTracker={setMealTracker} />
+              )}
+
               {view === 'settings' && (
                 <div className="w-full flex flex-col pb-20 animate-in fade-in">
                   <h2 className="text-2xl sm:text-3xl font-black text-white mb-8 tracking-tighter uppercase px-2">Settings</h2>
@@ -1269,6 +1633,34 @@ const App = () => {
                   <div className="space-y-3 px-2">
                     <button onClick={() => setView('edit-profile')} className="w-full p-5 cute-card flex items-center justify-between font-black text-white uppercase text-[10px] tracking-widest hover:bg-white/5 transition-all shadow-md">Edit Profile <ChevronRight size={18} /></button>
                     <button onClick={() => setView('dues-setup')} className="w-full p-5 cute-card flex items-center justify-between font-black text-white uppercase text-[10px] tracking-widest hover:bg-white/5 transition-all shadow-md">Manage Dues <Calendar size={18} /></button>
+
+                    {/* Catering Toggle */}
+                    <div className="cute-card p-5 shadow-md">
+                      <div className="flex items-center justify-between mb-3">
+                        <div>
+                          <p className="font-black text-white uppercase text-[10px] tracking-widest">Catering Tracker</p>
+                          <p className="text-[8px] text-indigo-400">Track prepaid meal balance</p>
+                        </div>
+                        <button
+                          onClick={() => setUser(prev => ({ ...prev, cateringEnabled: !prev.cateringEnabled }))}
+                          className={`w-14 h-8 rounded-full p-1 transition-all ${user.cateringEnabled ? 'bg-emerald-500' : 'bg-indigo-950/50'}`}
+                        >
+                          <div className={`w-6 h-6 rounded-full bg-white shadow-md transition-all ${user.cateringEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                        </button>
+                      </div>
+                      {user.cateringEnabled && (
+                        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-indigo-500/20">
+                          <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Monthly Cost</span>
+                          <input
+                            type="number"
+                            value={user.cateringMonthlyCost}
+                            onChange={(e) => setUser(prev => ({ ...prev, cateringMonthlyCost: parseFloat(e.target.value) || 0 }))}
+                            className="flex-1 py-2 px-3 bg-black/40 rounded-xl text-white font-mono text-sm text-center border border-indigo-500/30 focus:border-emerald-500 outline-none"
+                          />
+                          <span className="text-[9px] text-indigo-400 font-mono">৳</span>
+                        </div>
+                      )}
+                    </div>
 
                     <button onClick={() => setShowResetConfirm(true)} className="w-full p-5 bg-rose-950/20 rounded-3xl flex items-center justify-between font-black text-rose-500 uppercase text-[10px] tracking-widest hover:bg-rose-900/40 transition-all font-bold shadow-md">Reset App <RotateCcw size={18} /></button>
                   </div>
@@ -1286,12 +1678,11 @@ const App = () => {
                 />
               )}
 
-
-              {/* Bottom Nav Dock */}
-              <div className={`fixed bottom-6 left-0 right-0 z-[100] px-4 sm:px-6 overflow-visible transition-all duration-1000 max-w-3xl mx-auto flex justify-center items-end`}>
+              {/* Bottom Nav Dock - Mobile Only */}
+              <div className={`mobile-only fixed bottom-6 left-0 right-0 z-[100] px-4 sm:px-6 overflow-visible transition-all duration-1000 max-w-3xl mx-auto flex justify-center items-end`}>
 
                 {/* Floating Action Button - Independent */}
-                <div className="absolute -bottom-[5px] sm:bottom-[3px] z-[120] pointer-events-auto">
+                <div className="absolute left-1/2 -translate-x-1/2 -bottom-[5px] sm:bottom-[3px] z-[120] pointer-events-auto">
                   <button
                     onClick={() => view === 'savings' ? setView('add-savings') : setView('add')}
                     className="theme-bg w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center text-white shadow-[0_0_40px_var(--theme-glow)] ring-[8px] sm:ring-[12px] ring-[#0c0a1f] active:scale-95 transition-all hover:brightness-110 pulse-button"
@@ -1321,10 +1712,17 @@ const App = () => {
                     <span className="text-[7px] sm:text-[9px] font-black uppercase tracking-widest font-bold">Savings</span>
                   </button>
 
-                  <button onClick={() => setView('settings')} className={`flex flex-col items-center gap-1 sm:gap-2 transition-all ${view === 'settings' ? 'theme-text scale-110 neon-glow-theme' : 'text-indigo-200/50 hover:text-indigo-100'}`}>
-                    <Settings size={22} className="sm:w-[26px] sm:h-[26px]" strokeWidth={view === 'settings' ? 3 : 2} />
-                    <span className="text-[7px] sm:text-[9px] font-black uppercase tracking-widest font-bold">User</span>
-                  </button>
+                  {user.cateringEnabled ? (
+                    <button onClick={() => setView('meals')} className={`flex flex-col items-center gap-1 sm:gap-2 transition-all ${view === 'meals' ? 'theme-text scale-110 neon-glow-theme' : 'text-indigo-200/50 hover:text-indigo-100'}`}>
+                      <Utensils size={22} className="sm:w-[26px] sm:h-[26px]" strokeWidth={view === 'meals' ? 3 : 2} />
+                      <span className="text-[7px] sm:text-[9px] font-black uppercase tracking-widest font-bold">Meals</span>
+                    </button>
+                  ) : (
+                    <button onClick={() => setView('settings')} className={`flex flex-col items-center gap-1 sm:gap-2 transition-all ${view === 'settings' ? 'theme-text scale-110 neon-glow-theme' : 'text-indigo-200/50 hover:text-indigo-100'}`}>
+                      <Settings size={22} className="sm:w-[26px] sm:h-[26px]" strokeWidth={view === 'settings' ? 3 : 2} />
+                      <span className="text-[7px] sm:text-[9px] font-black uppercase tracking-widest font-bold">User</span>
+                    </button>
+                  )}
 
                 </div>
               </div>
