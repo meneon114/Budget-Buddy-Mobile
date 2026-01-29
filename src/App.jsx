@@ -10,7 +10,6 @@ import {
   Heart,
   Award,
   Download,
-  Sparkles,
   Candy,
   Coffee,
   Ghost,
@@ -28,7 +27,10 @@ import {
   Target,
   Calendar,
   Clock,
-  CheckCircle
+  CheckCircle,
+  Star,
+  Share2,
+  RotateCcw
 } from 'lucide-react';
 
 const CATEGORY_ICONS = {
@@ -138,18 +140,20 @@ const GlobalStyles = ({ color }) => {
       .animate-heart { animation: heart-float 2.5s ease-out infinite; }
       .animate-snow { animation: snow-fall 3s linear infinite; }
       .cute-card { background: rgba(20, 18, 48, 0.6); backdrop-filter: blur(32px); border-radius: 2.5rem; border: none; }
-      .scrollbar-hide::-webkit-scrollbar { display: none; }
+      /* Hide scrollbar for Chrome, Safari and Opera */
+      *::-webkit-scrollbar { display: none; }
+      /* Hide scrollbar for IE, Edge and Firefox */
+      * { -ms-overflow-style: none;  scrollbar-width: none; }
       body { 
         background-color: #080717; 
         background-image: radial-gradient(circle at top right, var(--theme-muted), #080717);
         color: #fdf2f8; 
         font-family: 'Inter', sans-serif;
-        height: 100vh;
-        width: 100vw;
-        overflow: hidden;
-        overscroll-behavior: none;
+        min-height: 100vh;
+        width: 100%;
+        overflow-x: hidden;
       }
-      #root { height: 100%; width: 100%; overflow: hidden; }
+      #root { min-height: 100vh; width: 100%; }
       .theme-bg { background-color: var(--theme-primary); }
       .theme-text { color: var(--theme-primary); }
       .neon-glow-theme { filter: drop-shadow(0 0 15px var(--theme-glow)); }
@@ -398,38 +402,56 @@ const StreakGraph = ({ streakData }) => {
 };
 
 const OnboardingView = ({ user, setUser, handleNumericInput, onComplete, isEditing = false }) => (
-  <div className="h-full flex flex-col justify-center animate-in fade-in duration-1000 bg-[#0c0a1f]">
-    <div className="cute-card p-6 sm:p-10 shadow-2xl relative overflow-hidden w-full max-w-md mx-auto">
-      <div className="flex justify-center mb-8 scale-[0.8]">
+  <div className="w-full flex-1 flex flex-col pt-10 pb-32">
+    <div className="flex-1 flex flex-col justify-center gap-4">
+      <div className="flex justify-center scale-[0.8] mb-[-20px]">
         <PixelPet type={user.petType} color={user.petColor} accessory={user.petAccessory} mood="happy" isAdding={false} />
       </div>
-      <h1 className="text-2xl sm:text-3xl font-black text-white text-center mb-2 tracking-tight uppercase">{isEditing ? "Update Profile" : "Budget Buddy"}</h1>
-      <p className="text-indigo-400 text-center text-[10px] font-bold uppercase tracking-[0.4em] mb-8">Adopt your Savings Buddy</p>
-      <form onSubmit={e => { e.preventDefault(); onComplete(); }} className="space-y-4 sm:space-y-6">
-        <div className="bg-indigo-950/30 rounded-2xl p-4">
-          <label className="text-[10px] font-black theme-text uppercase tracking-widest mb-1 block">Your Name</label>
-          <input type="text" required placeholder="ALEX" className="bg-transparent w-full text-white placeholder:text-indigo-900 outline-none font-bold uppercase text-sm" value={user.name} onChange={e => setUser({ ...user, name: e.target.value.toUpperCase() })} />
+
+      <div className="cute-card p-5 sm:p-6 shadow-2xl w-full max-w-sm mx-auto space-y-4">
+        <div className="text-center">
+          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase">{isEditing ? "Update Profile" : "Budget Buddy"}</h1>
+          <p className="text-indigo-400 text-[9px] font-bold uppercase tracking-[0.3em]">Adopt your Savings Buddy</p>
         </div>
-        <div className="flex gap-3">
-          <div className="bg-indigo-950/30 rounded-2xl p-4 w-1/2">
-            <label className="text-[10px] font-black theme-text uppercase tracking-widest mb-1 block">Monthly Income</label>
-            <input type="text" inputMode="decimal" required placeholder="25000" className="bg-transparent w-full text-white placeholder:text-indigo-900 outline-none font-bold text-sm" value={user.income} onChange={e => handleNumericInput(e.target.value, setUser, 'income')} />
+
+        <div className="space-y-3">
+          <div className="bg-indigo-950/30 rounded-xl p-3 border border-white/5">
+            <label className="text-[9px] font-black theme-text uppercase tracking-widest mb-1 block">Your Name</label>
+            <input type="text" required placeholder="ALEX" className="bg-transparent w-full text-white placeholder:text-indigo-900/50 outline-none font-bold uppercase text-sm" value={user.name} onChange={e => setUser({ ...user, name: e.target.value.toUpperCase() })} />
           </div>
-          <div className="bg-indigo-950/30 rounded-2xl p-4 w-1/2">
-            <label className="text-[10px] font-black theme-text uppercase tracking-widest mb-1 block">Savings Goal</label>
-            <input type="text" inputMode="decimal" required placeholder="5000" className="bg-transparent w-full text-white placeholder:text-indigo-900 outline-none font-bold text-sm" value={user.savingsGoal} onChange={e => handleNumericInput(e.target.value, setUser, 'savingsGoal')} />
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-indigo-950/30 rounded-xl p-3 border border-white/5">
+              <label className="text-[9px] font-black theme-text uppercase tracking-widest mb-1 block">Monthly Income</label>
+              <input type="text" inputMode="decimal" required placeholder="25000" className="bg-transparent w-full text-white placeholder:text-indigo-900/50 outline-none font-bold text-sm" value={user.income} onChange={e => handleNumericInput(e.target.value, setUser, 'income')} />
+            </div>
+            <div className="bg-indigo-950/30 rounded-xl p-3 border border-white/5">
+              <label className="text-[9px] font-black theme-text uppercase tracking-widest mb-1 block">Savings Goal</label>
+              <input type="text" inputMode="decimal" required placeholder="5000" className="bg-transparent w-full text-white placeholder:text-indigo-900/50 outline-none font-bold text-sm" value={user.savingsGoal} onChange={e => handleNumericInput(e.target.value, setUser, 'savingsGoal')} />
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <div className="flex bg-indigo-950/20 rounded-xl p-1 gap-1">
+              {['cat', 'dog', 'rabbit'].map(t => (<button key={t} type="button" onClick={() => setUser({ ...user, petType: t })} className={`flex-1 py-2 rounded-lg font-black text-[9px] uppercase transition-all ${user.petType === t ? 'theme-bg text-white shadow-lg' : 'text-indigo-400 hover:bg-white/5'}`}>{t}</button>))}
+            </div>
+            <div className="flex justify-between px-2">
+              {['orange', 'grey', 'brown', 'pink', 'blue', 'green', 'purple', 'red'].map(c => (<button key={c} type="button" onClick={() => setUser({ ...user, petColor: c })} className={`w-6 h-6 rounded-full border-2 transition-all ${user.petColor === c ? 'border-white scale-110 shadow-[0_0_10px_var(--theme-glow)]' : 'border-transparent opacity-30 hover:opacity-100'}`} style={{ backgroundColor: THEME_COLORS[c].primary }} />))}
+            </div>
           </div>
         </div>
-        <div className="space-y-4 pt-4 text-center">
-          <div className="flex gap-2">
-            {['cat', 'dog', 'rabbit'].map(t => (<button key={t} type="button" onClick={() => setUser({ ...user, petType: t })} className={`flex-1 py-3 rounded-xl border-none font-black text-[10px] uppercase transition-all ${user.petType === t ? 'theme-bg text-white shadow-lg shadow-[var(--theme-glow)]' : 'bg-indigo-950/20 text-indigo-400'}`}>{t}</button>))}
-          </div>
-          <div className="grid grid-cols-4 gap-4 px-6 pt-2 justify-items-center">
-            {['orange', 'grey', 'brown', 'pink', 'blue', 'green', 'purple', 'red'].map(c => (<button key={c} type="button" onClick={() => setUser({ ...user, petColor: c })} className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border-4 transition-all ${user.petColor === c ? 'border-white scale-110 shadow-lg' : 'border-transparent opacity-40'}`} style={{ backgroundColor: THEME_COLORS[c].primary }} />))}
-          </div>
-        </div>
-        <button type="submit" disabled={!user.name || !user.income || !user.savingsGoal} className="w-full py-4 sm:py-5 theme-bg text-white font-black rounded-[2rem] shadow-2xl uppercase tracking-[0.2em] text-[10px] sm:text-xs hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none">{isEditing ? "Save Changes" : "Start Budgeting"}</button>
-      </form>
+      </div>
+    </div>
+
+    {/* Button Island (Now Static) */}
+    <div className="mt-8 px-4 w-full max-w-sm mx-auto z-50">
+      <button
+        onClick={onComplete}
+        disabled={!user.name || !user.income || !user.savingsGoal}
+        className="w-full py-4 theme-bg text-white font-black rounded-[2rem] shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-white/10 uppercase tracking-[0.2em] text-xs hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
+      >
+        {isEditing ? "Save Changes" : "Start Budgeting"} <ChevronRight size={16} />
+      </button>
     </div>
   </div>
 );
@@ -466,36 +488,38 @@ const TutorialPopup = ({ onComplete, user }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-[#0c0a1f]/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="w-full max-w-sm bg-[#0c0a1f] border border-white/10 p-8 rounded-[2rem] shadow-2xl text-center relative overflow-hidden animate-in zoom-in-95 duration-300">
-
-        <div className="relative z-10">
-          <div key={step} className="animate-in slide-in-from-right-8 fade-in duration-300 fill-mode-both">
-            <div className="h-24 flex items-center justify-center mb-6">
-              {/* Reverting to icons since pet is removed from popup */}
-              {step === 0 && <Sparkles size={60} className="text-yellow-400 animate-pulse" />}
-              {step === 1 && <Zap size={60} className="text-cyan-400 animate-pulse" />}
-              {step === 2 && <Heart size={60} className="text-rose-400 animate-pulse" />}
-              {step === 3 && <Award size={60} className="text-emerald-400 animate-pulse" />}
-            </div>
-            <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-4">{slides[step].title}</h2>
-            <p className="text-indigo-200 text-xs font-bold leading-relaxed mb-8 h-16">{slides[step].desc}</p>
+    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-[#0c0a1f]/80 backdrop-blur-md animate-in fade-in duration-300">
+      <div className="w-full max-w-sm px-6 flex-1 flex flex-col justify-center">
+        <div key={step} className="animate-in zoom-in-95 fade-in duration-300 text-center">
+          <div className="h-28 flex items-center justify-center mb-8 relative">
+            <div className="absolute inset-0 bg-white/5 blur-3xl rounded-full scale-150 animate-pulse" />
+            {step === 0 && <Star size={80} className="text-yellow-400 relative z-10 animate-jolly" />}
+            {step === 1 && <Zap size={80} className="text-cyan-400 relative z-10 animate-jolly" />}
+            {step === 2 && <Heart size={80} className="text-rose-400 relative z-10 animate-heart" />}
+            {step === 3 && <Award size={80} className="text-emerald-400 relative z-10 animate-jolly" />}
           </div>
 
-          <div className="flex gap-2 justify-center mb-8">
-            {slides.map((_, i) => (
-              <div key={i} className={`w-2 h-2 rounded-full transition-all ${i === step ? 'bg-white w-6' : 'bg-white/20'}`} />
-            ))}
+          <h2 className="text-3xl font-black text-white uppercase tracking-tighter mb-4 leading-none">{slides[step].title}</h2>
+          <div className="bg-indigo-950/30 rounded-2xl p-6 border border-white/5">
+            <p className="text-indigo-200 text-sm font-medium leading-relaxed">{slides[step].desc}</p>
           </div>
+        </div>
 
-          <div className="space-y-4">
-            <button onClick={nextStep} className="w-full py-4 theme-bg text-white font-black rounded-2xl shadow-lg border-none active:scale-95 transition-all text-xs uppercase tracking-widest hover:brightness-110">
-              {step === slides.length - 1 ? "Let's Start!" : "Next"}
-            </button>
-            <button onClick={onComplete} className="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-white transition-colors">
-              Skip Tutorial
-            </button>
-          </div>
+        <div className="flex gap-2 justify-center mt-8">
+          {slides.map((_, i) => (
+            <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === step ? 'bg-white w-8' : 'bg-white/20 w-2'}`} />
+          ))}
+        </div>
+      </div>
+
+      <div className="fixed bottom-6 left-0 right-0 px-4 z-50">
+        <div className="max-w-md mx-auto flex flex-col gap-3">
+          <button onClick={nextStep} className="w-full py-4 theme-bg text-white font-black rounded-[2rem] shadow-[0_10px_40px_rgba(0,0,0,0.5)] border border-white/10 active:scale-95 transition-all text-xs uppercase tracking-[0.2em] hover:brightness-110 flex items-center justify-center gap-2">
+            {step === slides.length - 1 ? "Let's Start!" : "Next"} <ChevronRight size={14} />
+          </button>
+          <button onClick={onComplete} className="text-[10px] font-black text-indigo-400/50 uppercase tracking-widest hover:text-white transition-colors py-2">
+            Skip Tutorial
+          </button>
         </div>
       </div>
     </div>
@@ -513,10 +537,10 @@ const SavingsView = ({ targets, setTargets, handleNumericInput, activeId, setAct
   };
 
   return (
-    <div className="h-full flex flex-col pt-0 animate-in fade-in">
+    <div className="w-full flex flex-col pt-0 animate-in fade-in">
       <h2 className="text-2xl sm:text-3xl font-black text-white mb-6 tracking-tighter uppercase px-2 text-center">Savings Goals</h2>
 
-      <div className="flex-1 overflow-y-auto px-1 space-y-4 scrollbar-hide">
+      <div className="w-full space-y-4 pb-10">
         {targets.map(t => (
           <div key={t.id} className="cute-card p-6 shadow-lg relative overflow-hidden">
             <div className="flex justify-between items-end mb-2">
@@ -595,6 +619,59 @@ const ResetConfirmPopup = ({ onConfirm, onCancel }) => (
   </div>
 );
 
+const AddBillPopup = ({ onAdd, onCancel, handleNumericInput }) => {
+  const [newDue, setNewDue] = useState({ name: '', amount: '', day: '1' });
+  const [showCalendar, setShowCalendar] = useState(false);
+
+  const handleSubmit = () => {
+    if (newDue.name && newDue.amount && newDue.day) {
+      onAdd({ ...newDue, amount: parseFloat(newDue.amount) });
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[250] flex items-center justify-center p-6 bg-[#0c0a1f]/80 backdrop-blur-md animate-in fade-in duration-300">
+      <div className="w-full max-w-xs bg-[#0c0a1f] border border-indigo-500/30 p-6 rounded-[2rem] shadow-[0_20px_60px_rgba(0,0,0,0.5)] relative overflow-hidden animate-in zoom-in-95 duration-300">
+        <h3 className="text-xl font-black text-white uppercase tracking-tight mb-6 text-center">Add Monthly Bill</h3>
+
+        <div className="space-y-3 mb-6">
+          <div className="bg-indigo-950/30 rounded-xl p-3 border border-white/5">
+            <label className="text-[9px] font-black theme-text uppercase tracking-widest mb-1 block">Bill Name</label>
+            <input type="text" autoFocus placeholder="e.g. Rent" className="bg-transparent w-full text-white placeholder:text-indigo-900/50 outline-none font-bold text-sm" value={newDue.name} onChange={e => setNewDue({ ...newDue, name: e.target.value })} />
+          </div>
+
+          <div className="flex gap-3">
+            <div className="bg-indigo-950/30 rounded-xl p-3 border border-white/5 w-1/2">
+              <label className="text-[9px] font-black theme-text uppercase tracking-widest mb-1 block">Amount</label>
+              <input type="text" inputMode="decimal" placeholder="0" className="bg-transparent w-full text-white placeholder:text-indigo-900/50 outline-none font-bold text-sm" value={newDue.amount} onChange={e => handleNumericInput(e.target.value, (val) => setNewDue(prev => ({ ...prev, amount: val })))} />
+            </div>
+            <button onClick={() => setShowCalendar(true)} className="bg-indigo-950/30 rounded-xl p-3 border border-white/5 w-1/2 text-left hover:bg-white/5 transition-colors">
+              <label className="text-[9px] font-black theme-text uppercase tracking-widest mb-1 block">Due Day</label>
+              <div className="flex items-center justify-between">
+                <span className="font-black text-white text-sm">{newDue.day}</span>
+                <Calendar size={14} className="text-indigo-400" />
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          <button onClick={onCancel} className="flex-1 py-3 bg-indigo-950/30 text-indigo-400 font-black rounded-xl text-[10px] uppercase tracking-widest hover:text-white transition-colors">Cancel</button>
+          <button onClick={handleSubmit} disabled={!newDue.name || !newDue.amount || !newDue.day} className="flex-[2] py-3 theme-bg text-white font-black rounded-xl text-[10px] uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none">Add Bill</button>
+        </div>
+
+        {showCalendar && (
+          <CalendarPopup
+            selectedDay={newDue.day}
+            onSelect={(day) => { setNewDue((prev) => ({ ...prev, day: day.toString() })); setShowCalendar(false); }}
+            onClose={() => setShowCalendar(false)}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
 const AddFundsPopup = ({ targetName, onConfirm, onCancel, handleNumericInput }) => {
   const [amount, setAmount] = useState('');
   return (
@@ -635,64 +712,60 @@ const AddFundsPopup = ({ targetName, onConfirm, onCancel, handleNumericInput }) 
 };
 
 const RecurringExpensesView = ({ dues, setDues, onComplete, handleNumericInput }) => {
-  const [newDue, setNewDue] = useState({ name: '', amount: '', day: '1' });
-  const [showCalendar, setShowCalendar] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
-  const addDue = () => {
-    if (!newDue.name || !newDue.amount || !newDue.day) return;
-    setDues([...dues, { id: Date.now(), ...newDue, amount: parseFloat(newDue.amount) }]);
-    setNewDue({ name: '', amount: '', day: '1' });
+  const addDue = (newDetails) => {
+    setDues([...dues, { id: Date.now(), ...newDetails }]);
+    setIsAdding(false);
   };
 
   const removeDue = (id) => setDues(dues.filter(d => d.id !== id));
 
   return (
-    <div className="h-full flex flex-col pt-0 animate-in fade-in duration-500">
-      <h2 className="text-2xl font-black text-white mb-2 text-center uppercase tracking-tighter">Monthly Dues</h2>
-      <p className="text-indigo-400 text-center text-[10px] font-bold uppercase tracking-widest mb-8">Rent, Internet, Subscriptions</p>
+    <div className="w-full flex-1 flex flex-col pt-10 pb-32">
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Monthly Dues</h2>
+        <p className="text-indigo-400 text-[9px] font-bold uppercase tracking-widest">Rent, Internet, Subscriptions</p>
+      </div>
 
-      <div className="flex-1 overflow-y-auto space-y-3 px-1 scrollbar-hide">
+      <div className="flex-1 w-full space-y-2 pb-10">
+        <button onClick={() => setIsAdding(true)} className="w-full py-3 border-2 border-dashed border-indigo-500/30 rounded-xl text-indigo-400 font-black text-[10px] uppercase tracking-widest hover:border-indigo-400 hover:text-white transition-all flex items-center justify-center gap-2 mb-4 group animate-in fade-in zoom-in-95">
+          <PlusCircle size={16} className="group-hover:scale-110 transition-transform" /> Add New Bill
+        </button>
+
         {dues.map(d => (
-          <div key={d.id} className="bg-[#1e1b4b]/60 backdrop-blur-md p-4 rounded-2xl flex justify-between items-center border border-indigo-500/20">
-            <div>
-              <p className="font-black text-white text-sm uppercase tracking-wide flex items-center gap-2"><Calendar size={12} className="text-indigo-400" /> {d.name}</p>
-              <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-widest mt-1">Due Day: {d.day}</p>
+          <div key={d.id} className="bg-[#1e1b4b]/40 hover:bg-[#1e1b4b]/60 transition-colors backdrop-blur-md p-3 rounded-xl flex justify-between items-center border border-indigo-500/10 group animate-in slide-in-from-bottom-2 fade-in fill-mode-both">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                <Calendar size={14} />
+              </div>
+              <div>
+                <p className="font-black text-white text-xs uppercase tracking-wide">{d.name}</p>
+                <p className="text-[9px] text-indigo-300 font-bold uppercase tracking-widest opacity-60">Day {d.day}</p>
+              </div>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="font-mono font-black text-white">৳{d.amount.toLocaleString()}</span>
-              <button onClick={() => removeDue(d.id)} className="text-rose-500 p-2"><Trash2 size={16} /></button>
+            <div className="flex items-center gap-3">
+              <span className="font-mono font-black text-white text-sm">৳{d.amount.toLocaleString()}</span>
+              <button onClick={() => removeDue(d.id)} className="text-indigo-500/50 hover:text-rose-500 p-2 transition-colors"><Trash2 size={14} /></button>
             </div>
           </div>
         ))}
         {dues.length === 0 && <div className="text-center opacity-30 py-8"><Clock size={48} className="mx-auto mb-2" /><p className="text-[10px] font-black uppercase tracking-widest">No recurring bills added</p></div>}
       </div>
 
-      <div className="mt-4 bg-[#0c0a1f]/80 p-5 rounded-3xl border border-indigo-500/30">
-        <div className="flex gap-2 mb-3">
-          <input type="text" placeholder="Bill Name" className="flex-[2] min-w-0 bg-indigo-950/40 p-3 rounded-xl text-white font-bold text-xs outline-none focus:bg-indigo-950/60 transition-colors" value={newDue.name} onChange={e => setNewDue({ ...newDue, name: e.target.value })} />
-          <input type="text" inputMode="decimal" placeholder="Amount" className="flex-1 min-w-0 bg-indigo-950/40 p-3 rounded-xl text-white font-bold text-xs outline-none focus:bg-indigo-950/60 transition-colors" value={newDue.amount} onChange={e => handleNumericInput(e.target.value, (val) => setNewDue(prev => ({ ...prev, amount: val })))} />
-        </div>
-
-        <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => setShowCalendar(true)} className="flex-1 flex justify-between items-center bg-indigo-950/40 p-3 rounded-xl hover:bg-indigo-950/60 transition-colors group">
-            <span className="text-[10px] font-black text-indigo-300 uppercase tracking-widest group-hover:text-white transition-colors">Due Day: <span className="text-white text-xs ml-2">{newDue.day}</span></span>
-            <Calendar size={16} className="text-indigo-400 group-hover:text-white transition-colors" />
+      <div className="fixed bottom-6 left-0 right-0 px-4 z-50">
+        <div className="max-w-md mx-auto">
+          <button
+            onClick={onComplete}
+            className="w-full py-4 theme-bg text-white font-black rounded-[2rem] shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-white/10 uppercase tracking-[0.2em] text-xs hover:brightness-110 active:scale-95 transition-all text-center"
+          >
+            {dues.length > 0 ? "All Set!" : "Skip for Now"}
           </button>
         </div>
-
-        <button onClick={addDue} disabled={!newDue.name || !newDue.amount || !newDue.day} className="w-full py-3 bg-indigo-600 text-white font-black rounded-xl text-[10px] uppercase tracking-widest shadow-lg mb-4 disabled:opacity-50 disabled:pointer-events-none">Add Bill</button>
       </div>
 
-      <button onClick={onComplete} className="w-full py-4 theme-bg text-white font-black rounded-[2rem] shadow-xl uppercase tracking-[0.2em] text-xs mt-4 hover:brightness-110 active:scale-95 transition-all">
-        {dues.length > 0 ? "All Set!" : "Skip for Now"}
-      </button>
-
-      {showCalendar && (
-        <CalendarPopup
-          selectedDay={newDue.day}
-          onSelect={(day) => { setNewDue({ ...newDue, day: day.toString() }); setShowCalendar(false); }}
-          onClose={() => setShowCalendar(false)}
-        />
+      {isAdding && (
+        <AddBillPopup onAdd={addDue} onCancel={() => setIsAdding(false)} handleNumericInput={handleNumericInput} />
       )}
     </div>
   );
@@ -731,10 +804,10 @@ const GlobalPopup = ({ type, message, onConfirm, onCancel }) => {
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#0c0a1f]/80 backdrop-blur-sm animate-in fade-in duration-300">
       <div className="bg-[#0c0a1f] w-full max-w-xs rounded-3xl border border-white/10 p-6 shadow-2xl relative overflow-hidden animate-in zoom-in-50 duration-300">
-        <div className="absolute top-0 right-0 p-4 opacity-10 theme-text"><Sparkles size={80} /></div>
+        <div className="absolute top-0 right-0 p-4 opacity-10 theme-text"><Star size={80} /></div>
         <div className="flex flex-col items-center text-center relative z-10">
           {type === 'alert' ? (
-            <div className="w-16 h-16 rounded-full bg-indigo-500/20 flex items-center justify-center mb-4 text-indigo-400"><Sparkles size={32} /></div>
+            <div className="w-16 h-16 rounded-full bg-indigo-500/20 flex items-center justify-center mb-4 text-indigo-400"><Star size={32} /></div>
           ) : (
             <div className="w-16 h-16 rounded-full bg-rose-500/20 flex items-center justify-center mb-4 text-rose-400"><Target size={32} /></div>
           )}
@@ -758,6 +831,11 @@ const GlobalPopup = ({ type, message, onConfirm, onCancel }) => {
 
 const App = () => {
   const [view, setView] = useState('onboarding');
+  /* Scroll to top when view changes */
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [view]);
+
   const [user, setUser] = useState({ name: '', income: '', savingsGoal: '', petType: 'cat', petColor: 'orange', petAccessory: 'none', activeTargetId: null });
   const [expenses, setExpenses] = useState([]);
   const [streakData, setStreakData] = useState({});
@@ -901,34 +979,28 @@ const App = () => {
     setView('dashboard');
   };
 
-  const exportData = () => {
-    const data = { user, expenses, streakData, exportedAt: new Date().toISOString() };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `budget_buddy_data.json`; a.click();
-  };
 
   return (
-    <div className="h-screen w-screen bg-[#0c0a1f] text-indigo-50 font-sans relative overflow-hidden">
+    <div className="min-h-screen w-full bg-[#0c0a1f] text-indigo-50 font-sans relative">
       <GlobalStyles color={user.petColor} />
-      <div className="w-full h-full flex flex-col relative">
-        <main className="w-full max-w-md h-full flex flex-col relative p-6 pb-32 text-center mx-auto overflow-y-auto scrollbar-hide">
+      <div className="w-full min-h-screen flex flex-col relative pb-32">
+        <main className="w-full max-w-3xl mx-auto p-6 md:p-12 relative flex flex-col gap-8">
           {view === 'onboarding' ? (
-            <div className="flex-1 flex flex-col justify-center">
+            <div className="w-full flex flex-col justify-center">
               <OnboardingView user={user} setUser={setUser} handleNumericInput={handleNumericInput} onComplete={() => setView('dues-setup')} />
             </div>
           ) : view === 'edit-profile' ? (
-            <div className="flex-1 flex flex-col justify-center">
+            <div className="w-full flex flex-col justify-center">
               <OnboardingView user={user} setUser={setUser} handleNumericInput={handleNumericInput} onComplete={() => setView('settings')} isEditing={true} />
             </div>
           ) : view === 'dues-setup' ? (
-            <div className="flex-1 flex flex-col justify-center">
+            <div className="w-full flex flex-col justify-center pb-20">
               <RecurringExpensesView dues={monthlyDues} setDues={setMonthlyDues} handleNumericInput={handleNumericInput} onComplete={() => setView('dashboard')} />
             </div>
           ) : (
-            <div className="h-full flex flex-col">
+            <div className="w-full flex flex-col">
               {view === 'dashboard' && (
-                <div className="flex-1 flex flex-col justify-evenly animate-in fade-in duration-700">
+                <div className="w-full flex flex-col justify-start gap-6 pb-20 animate-in fade-in duration-700">
                   {/* Tutorial Popup Overlay */}
                   {!tutorialComplete && <TutorialPopup user={user} onComplete={finishTutorial} />}
 
@@ -937,7 +1009,7 @@ const App = () => {
 
                   <div className="flex flex-col items-center gap-1">
                     <p className="theme-text text-[11px] font-black uppercase tracking-[0.3em] flex items-center gap-2 neon-glow-theme">
-                      <Sparkles size={14} className="animate-pulse theme-text" /> Welcome back, {user.name}
+                      <Star size={14} className="animate-pulse theme-text" /> Welcome back, {user.name}
                     </p>
                     <div className="mt-1 flex items-center gap-2 bg-indigo-950/60 px-4 py-1.5 rounded-full shadow-lg transition-colors duration-500" style={{
                       borderColor: stats.mood === 'happy' ? '#34d399' : stats.mood === 'worried' ? '#fb923c' : stats.mood === 'critical' ? '#fb7185' : '#94a3b8',
@@ -954,16 +1026,20 @@ const App = () => {
                     <PixelPet type={user.petType} color={user.petColor} accessory={user.petAccessory} mood={stats.mood} isAdding={false} showHearts={stats.mood === 'happy'} />
                   </div>
 
-                  <div className="cute-card p-6 sm:p-8 shadow-2xl relative overflow-hidden">
-                    {/* Fire Streak */}
-                    <div className="absolute top-0 right-6 p-4 flex items-center gap-2 z-10">
-                      <span className="text-lg animate-pulse">🔥</span>
-                      <span className="text-xs font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-300 to-rose-300 uppercase tracking-widest leading-none drop-shadow-[0_0_8px_rgba(251,146,60,0.3)]">
-                        {Object.values(streakData).filter(v => v).length} {Object.values(streakData).filter(v => v).length === 1 ? 'Day' : 'Days'}
-                      </span>
+                  <div className="cute-card p-5 sm:p-6 shadow-2xl relative overflow-hidden">
+                    <p className="text-[9px] font-black theme-text uppercase tracking-[0.3em] mb-2 text-center opacity-70">Daily Budget</p>
+
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mb-4">
+                      <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter font-mono break-all leading-tight">৳{stats.dailyRemaining.toFixed(2)}</h2>
+
+                      <div className="flex items-center gap-2 px-3 py-1 bg-indigo-950/40 rounded-full border border-orange-500/20 shadow-lg">
+                        <span className="text-sm animate-pulse">🔥</span>
+                        <span className="text-[9px] font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-300 to-rose-300 uppercase tracking-widest leading-none">
+                          {Object.values(streakData).filter(v => v).length} {Object.values(streakData).filter(v => v).length === 1 ? 'Day' : 'Days'}
+                        </span>
+                      </div>
                     </div>
-                    <p className="text-[10px] font-black theme-text uppercase tracking-[0.4em] mb-4 text-center">Daily Budget</p>
-                    <h2 className="text-4xl sm:text-6xl font-black text-white tracking-tighter mb-8 font-mono break-all leading-tight">৳{stats.dailyRemaining.toFixed(2)}</h2>
+
                     <div className="space-y-4 px-2">
                       <div className="w-full bg-black/60 h-6 sm:h-8 rounded-full p-1 sm:p-1.5 relative overflow-hidden shadow-inner">
                         <div
@@ -1086,20 +1162,24 @@ const App = () => {
                 <GlobalPopup
                   type={popup.type}
                   message={popup.message}
-                  onConfirm={popup.onConfirm}
+                  onConfirm={popup.onConfirm || (() => setPopup(prev => ({ ...prev, isOpen: false })))}
                   onCancel={popup.onCancel || (() => setPopup(prev => ({ ...prev, isOpen: false })))}
                 />
               )}
 
               {view === 'add' && (
-                <div className="h-full flex flex-col justify-center animate-in slide-in-from-bottom duration-500">
-                  <div className="flex flex-col items-center mb-8">
-                    <PixelPet type={user.petType} color={user.petColor} accessory={user.petAccessory} mood="happy" isAdding={true} />
-                    <div className="mt-8 bg-rose-500/20 px-8 py-3 rounded-full text-[11px] font-black uppercase tracking-widest animate-shiver shadow-[0_0_20px_rgba(244,63,94,0.3)]">Heartbreak Warning...</div>
+                <div className="w-full flex flex-col justify-center animate-in slide-in-from-bottom duration-500 pb-20">
+                  <div className="flex flex-col items-center mb-2">
+                    <div className="scale-[0.65] sm:scale-75 origin-center">
+                      <PixelPet type={user.petType} color={user.petColor} accessory={user.petAccessory} mood="happy" isAdding={true} />
+                    </div>
+                    <div className="mt-4 bg-black/40 border border-white/10 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest text-indigo-300 flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" /> Keep your buddy happy!
+                    </div>
                   </div>
-                  <div className="cute-card p-6 sm:p-10 shadow-2xl">
+                  <div className="cute-card p-5 shadow-2xl">
                     <div className="text-center">
-                      <p className="text-[10px] font-black theme-text uppercase tracking-[0.4em] mb-4 text-center">Cost Input</p>
+                      <p className="text-[9px] font-black theme-text uppercase tracking-[0.4em] mb-2 text-center">Cost Input</p>
                       <AddExpenseInput onAdd={addExpense} onCancel={() => setView('dashboard')} handleNumericInput={handleNumericInput} />
                     </div>
                   </div>
@@ -1107,9 +1187,9 @@ const App = () => {
               )}
 
               {view === 'history' && (
-                <div className="h-full flex flex-col pt-0 animate-in fade-in">
+                <div className="w-full flex flex-col pt-0 animate-in fade-in pb-20">
                   <h2 className="text-2xl sm:text-3xl font-black text-white mb-6 tracking-tighter uppercase px-2 text-center">History & Stats</h2>
-                  <div className="space-y-4 px-1 overflow-y-auto flex-1 scrollbar-hide pb-20">
+                  <div className="space-y-4 px-1 w-full">
 
                     {/* Stats Section */}
                     <div className="space-y-4">
@@ -1179,7 +1259,7 @@ const App = () => {
               )}
 
               {view === 'settings' && (
-                <div className="h-full flex flex-col justify-center animate-in fade-in">
+                <div className="w-full flex flex-col pb-20 animate-in fade-in">
                   <h2 className="text-2xl sm:text-3xl font-black text-white mb-8 tracking-tighter uppercase px-2">Settings</h2>
                   <div className="cute-card rounded-[2.5rem] p-8 text-center mb-8 shadow-2xl relative overflow-hidden">
                     <div className="absolute -top-10 -right-10 opacity-10 rotate-12 theme-text"><Wallet size={160} /></div>
@@ -1189,8 +1269,8 @@ const App = () => {
                   <div className="space-y-3 px-2">
                     <button onClick={() => setView('edit-profile')} className="w-full p-5 cute-card flex items-center justify-between font-black text-white uppercase text-[10px] tracking-widest hover:bg-white/5 transition-all shadow-md">Edit Profile <ChevronRight size={18} /></button>
                     <button onClick={() => setView('dues-setup')} className="w-full p-5 cute-card flex items-center justify-between font-black text-white uppercase text-[10px] tracking-widest hover:bg-white/5 transition-all shadow-md">Manage Dues <Calendar size={18} /></button>
-                    <button onClick={exportData} className="w-full p-5 cute-card flex items-center justify-between font-black text-emerald-400 uppercase text-[10px] tracking-widest hover:bg-emerald-500/10 transition-all font-bold shadow-md">Export Data <Download size={18} /></button>
-                    <button onClick={() => setShowResetConfirm(true)} className="w-full p-5 bg-rose-950/20 rounded-3xl flex items-center justify-between font-black text-rose-500 uppercase text-[10px] tracking-widest hover:bg-rose-900/40 transition-all font-bold shadow-md">Reset App</button>
+
+                    <button onClick={() => setShowResetConfirm(true)} className="w-full p-5 bg-rose-950/20 rounded-3xl flex items-center justify-between font-black text-rose-500 uppercase text-[10px] tracking-widest hover:bg-rose-900/40 transition-all font-bold shadow-md">Reset App <RotateCcw size={18} /></button>
                   </div>
                 </div>
               )}
@@ -1208,8 +1288,20 @@ const App = () => {
 
 
               {/* Bottom Nav Dock */}
-              <div className={`fixed bottom-6 left-0 right-0 z-[100] px-4 sm:px-6 overflow-visible transition-all duration-1000`}>
-                <div className="mx-auto max-w-md bg-black/95 backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,1)] rounded-[3rem] px-4 sm:px-8 py-4 sm:py-6 flex justify-between items-center relative overflow-visible ring-1 ring-white/10">
+              <div className={`fixed bottom-6 left-0 right-0 z-[100] px-4 sm:px-6 overflow-visible transition-all duration-1000 max-w-3xl mx-auto flex justify-center items-end`}>
+
+                {/* Floating Action Button - Independent */}
+                <div className="absolute -bottom-[5px] sm:bottom-[3px] z-[120] pointer-events-auto">
+                  <button
+                    onClick={() => view === 'savings' ? setView('add-savings') : setView('add')}
+                    className="theme-bg w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center text-white shadow-[0_0_40px_var(--theme-glow)] ring-[8px] sm:ring-[12px] ring-[#0c0a1f] active:scale-95 transition-all hover:brightness-110 pulse-button"
+                  >
+                    <PlusCircle size={40} className="sm:w-[48px] sm:h-[48px] drop-shadow-[0_0_12px_white]" strokeWidth={2.5} />
+                  </button>
+                </div>
+
+                {/* Dock Background & Icons */}
+                <div className="w-full bg-black/95 backdrop-blur-3xl shadow-[0_20px_60px_rgba(0,0,0,1)] rounded-[3rem] px-4 sm:px-8 py-4 sm:py-6 flex justify-between items-center relative overflow-hidden ring-1 ring-white/10 z-[100]">
 
                   <button onClick={() => setView('dashboard')} className={`flex flex-col items-center gap-1 sm:gap-2 transition-all ${view === 'dashboard' ? 'theme-text scale-110 neon-glow-theme' : 'text-indigo-200/50 hover:text-indigo-100'}`}>
                     <Home size={22} className="sm:w-[26px] sm:h-[26px]" strokeWidth={view === 'dashboard' ? 3 : 2} />
@@ -1221,14 +1313,8 @@ const App = () => {
                     <span className="text-[7px] sm:text-[9px] font-black uppercase tracking-widest font-bold">History</span>
                   </button>
 
-                  <div className="relative -mt-20 sm:-mt-24 overflow-visible">
-                    <button
-                      onClick={() => view === 'savings' ? setView('add-savings') : setView('add')}
-                      className="theme-bg w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center text-white shadow-[0_0_40px_var(--theme-glow)] ring-[12px] sm:ring-[16px] ring-[#0c0a1f] active:scale-90 transition-all hover:brightness-110 z-[110] pulse-button"
-                    >
-                      <PlusCircle size={32} className="sm:w-[40px] sm:h-[40px] drop-shadow-[0_0_12px_white]" strokeWidth={2.5} />
-                    </button>
-                  </div>
+                  {/* Spacer for Floating Button */}
+                  <div className="w-16 sm:w-20 pointer-events-none opacity-0" />
 
                   <button onClick={() => setView('savings')} className={`flex flex-col items-center gap-1 sm:gap-2 transition-all ${view === 'savings' ? 'theme-text scale-110 neon-glow-theme' : 'text-indigo-200/50 hover:text-indigo-100'}`}>
                     <PiggyBank size={22} className="sm:w-[26px] sm:h-[26px]" strokeWidth={view === 'savings' ? 3 : 2} />
@@ -1255,25 +1341,25 @@ const AddExpenseInput = ({ onAdd, onCancel, handleNumericInput }) => {
   const [cat, setCat] = useState('Snacks');
   const categories = ['Meals', 'Fun', 'Travel', 'Shop', 'Health', 'Gifts'];
   return (
-    <div className="w-full space-y-8 sm:space-y-10">
+    <div className="w-full space-y-4">
       <div className="flex items-center justify-center gap-2">
-        <span className="text-2xl sm:text-4xl font-black theme-text font-mono">৳</span>
+        <span className="text-2xl sm:text-3xl font-black theme-text font-mono">৳</span>
         <input type="text" inputMode="decimal" autoFocus className="bg-transparent responsive-text-huge font-black text-white w-full outline-none text-center font-mono placeholder:text-indigo-950" placeholder="0.00" value={amount} onChange={e => handleNumericInput(e.target.value, setAmount)} />
       </div>
-      <div className="grid grid-cols-2 gap-2 sm:gap-3">
+      <div className="grid grid-cols-2 gap-2">
         {categories.map(c => {
           const Icon = CATEGORY_ICONS[c] || DollarSign;
           return (
-            <button key={c} type="button" onClick={() => setCat(c)} className={`py-3 sm:py-4 rounded-2xl sm:rounded-3xl text-[9px] sm:text-[10px] font-black uppercase border-none transition-all tracking-widest font-bold flex flex-col items-center gap-2 ${cat === c ? 'theme-bg text-white shadow-2xl' : 'bg-indigo-950/20 text-indigo-400'}`}>
-              <Icon size={20} />
+            <button key={c} type="button" onClick={() => setCat(c)} className={`py-2 sm:py-3 rounded-xl sm:rounded-2xl text-[8px] sm:text-[9px] font-black uppercase border-none transition-all tracking-widest font-bold flex flex-col items-center gap-1 ${cat === c ? 'theme-bg text-white shadow-lg' : 'bg-indigo-950/20 text-indigo-400'}`}>
+              <Icon size={16} />
               {c}
             </button>
           );
         })}
       </div>
-      <div className="flex gap-4 pt-4 sm:pt-6">
-        <button onClick={onCancel} className="flex-1 py-4 sm:py-5 bg-indigo-950/40 text-indigo-300 font-black rounded-2xl sm:rounded-3xl text-[9px] sm:text-[11px] uppercase tracking-widest transition-all hover:text-white font-bold border-none shadow-md">Abort</button>
-        <button onClick={() => onAdd(amount, cat)} disabled={!amount} className="flex-[2] py-4 sm:py-5 theme-bg text-white font-black rounded-2xl sm:rounded-3xl shadow-xl shadow-indigo-500/30 text-[9px] sm:text-[11px] uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all font-bold border-none disabled:opacity-50 disabled:pointer-events-none">Log Cost</button>
+      <div className="flex gap-3 pt-2">
+        <button onClick={onCancel} className="flex-1 py-3 bg-indigo-950/40 text-indigo-300 font-black rounded-xl sm:rounded-2xl text-[9px] uppercase tracking-widest transition-all hover:text-white font-bold border-none shadow-md">Abort</button>
+        <button onClick={() => onAdd(amount, cat)} disabled={!amount} className="flex-[2] py-3 theme-bg text-white font-black rounded-xl sm:rounded-2xl shadow-lg shadow-indigo-500/30 text-[9px] uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all font-bold border-none disabled:opacity-50 disabled:pointer-events-none">Log Cost</button>
       </div>
     </div>
   );
@@ -1285,7 +1371,7 @@ const AddSavingsInput = ({ onAdd, onCancel, handleNumericInput }) => {
   const [target, setTarget] = useState('');
 
   return (
-    <div className="h-full flex flex-col justify-center animate-in slide-in-from-bottom duration-500">
+    <div className="w-full flex flex-col justify-center animate-in slide-in-from-bottom duration-500 pb-20">
       <div className="cute-card p-6 sm:p-10 shadow-2xl mx-4">
         <div className="text-center mb-6">
           <PiggyBank size={48} className="mx-auto text-emerald-400 mb-4 animate-bounce" />
