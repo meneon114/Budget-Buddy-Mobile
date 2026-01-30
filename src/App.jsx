@@ -1122,7 +1122,7 @@ const App = () => {
     window.scrollTo(0, 0);
   }, [view]);
 
-  const [user, setUser] = useState({ name: '', income: '', savingsGoal: '', petType: 'cat', petColor: 'orange', petAccessory: 'none', activeTargetId: null, cateringEnabled: false, cateringMonthlyCost: 3000 });
+  const [user, setUser] = useState({ name: '', income: '', savingsGoal: '', petType: 'cat', petColor: 'orange', petAccessory: 'none', activeTargetId: null, cateringEnabled: false, cateringPricePerMeal: 0 });
   const [expenses, setExpenses] = useState([]);
   const [streakData, setStreakData] = useState({});
   const [savingsTargets, setSavingsTargets] = useState([]);
@@ -1180,7 +1180,10 @@ const App = () => {
     const monthlyIncome = parseFloat(user.income) || 0;
     const monthlyGoal = parseFloat(user.savingsGoal) || 0;
     const totalDues = monthlyDues.reduce((a, b) => a + (parseFloat(b.amount) || 0), 0);
-    const cateringCost = user.cateringEnabled ? (parseFloat(user.cateringMonthlyCost) || 0) : 0;
+    const daysInRolloverMonth = new Date().getDate(); // Usage of current date for days in month context might be intended for "now" or "that month". 
+    // Actually, getting days in current month:
+    const daysInCurrentMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+    const cateringCost = user.cateringEnabled ? (parseFloat(user.cateringPricePerMeal) || 0) * daysInCurrentMonth : 0;
     const dailyBudget = Math.max(0, monthlyIncome - totalDues - cateringCost) / 30;
     const dailySaveTarget = monthlyGoal / 30; // Amount user should save per day
 
@@ -1266,7 +1269,8 @@ const App = () => {
     const monthlyGoal = remainingToSave;
 
     const totalDues = monthlyDues.reduce((a, b) => a + (parseFloat(b.amount) || 0), 0);
-    const cateringCost = user.cateringEnabled ? (parseFloat(user.cateringMonthlyCost) || 0) : 0;
+    const daysInStatMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const cateringCost = user.cateringEnabled ? (parseFloat(user.cateringPricePerMeal) || 0) * daysInStatMonth : 0;
     // Full disposable income (NOT minus savings goal - we show that via usable budget instead)
     const totalDisp = Math.max(0, monthlyIncome - totalDues - cateringCost);
     const currMonthExp = expenses.filter(e => { const d = new Date(e.date); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
@@ -1736,12 +1740,13 @@ const App = () => {
                       </div>
                       {user.cateringEnabled && (
                         <div className="flex items-center gap-2 mt-3 pt-3 border-t border-indigo-500/20">
-                          <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Monthly Cost</span>
+                          <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Price Per Meal</span>
                           <input
                             type="number"
-                            value={user.cateringMonthlyCost}
-                            onChange={(e) => setUser(prev => ({ ...prev, cateringMonthlyCost: parseFloat(e.target.value) || 0 }))}
+                            value={user.cateringPricePerMeal || ''}
+                            onChange={(e) => setUser(prev => ({ ...prev, cateringPricePerMeal: parseFloat(e.target.value) || 0 }))}
                             className="flex-1 py-2 px-3 bg-black/40 rounded-xl text-white font-mono text-sm text-center border border-indigo-500/30 focus:border-emerald-500 outline-none"
+                            placeholder="0"
                           />
                           <span className="text-[9px] text-indigo-400 font-mono">৳</span>
                         </div>
