@@ -32,7 +32,9 @@ import {
   Share2,
   RotateCcw,
   Sparkles,
-  Github
+  Github,
+  Monitor,
+  Smartphone
 } from 'lucide-react';
 
 const CATEGORY_ICONS = {
@@ -1148,6 +1150,42 @@ const GlobalPopup = ({ type, message, onConfirm, onCancel }) => {
   );
 };
 
+
+const DownloadPopup = ({ onSelect, onCancel }) => {
+  return (
+    <div className="fixed inset-0 z-[250] flex items-center justify-center p-6 bg-[#0c0a1f]/80 backdrop-blur-md animate-in fade-in duration-300">
+      <div className="w-full max-w-xs bg-[#0c0a1f] border border-indigo-500/30 p-8 rounded-[2rem] shadow-2xl text-center relative overflow-hidden animate-in zoom-in-95 duration-300">
+        <div className="flex justify-center mb-6">
+          <div className="w-16 h-16 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 animate-bounce">
+            <Download size={32} />
+          </div>
+        </div>
+        <h3 className="text-xl font-black text-white uppercase tracking-tight mb-6">Download App</h3>
+        <div className="space-y-3">
+          <button
+            onClick={() => onSelect('windows')}
+            className="w-full py-4 bg-indigo-950/30 hover:bg-indigo-900/40 text-white font-black rounded-xl text-xs uppercase tracking-widest border border-indigo-500/20 flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95"
+          >
+            <Monitor size={16} /> Windows (EXE)
+          </button>
+          <button
+            onClick={() => onSelect('android')}
+            className="w-full py-4 bg-indigo-950/30 hover:bg-indigo-900/40 text-white font-black rounded-xl text-xs uppercase tracking-widest border border-indigo-500/20 flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95"
+          >
+            <Smartphone size={16} /> Android (APK)
+          </button>
+          <button
+            onClick={onCancel}
+            className="w-full py-3 mt-2 text-[10px] font-black text-indigo-500/50 uppercase tracking-widest hover:text-white transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const App = () => {
   const [view, setView] = useState('onboarding');
   /* Scroll to top when view changes */
@@ -1165,7 +1203,8 @@ const App = () => {
   const [tutorialComplete, setTutorialComplete] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [popup, setPopup] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null, onCancel: null }); // Global Popup State
-  const [mealTracker, setMealTracker] = useState({ balance: 0, mealLog: [] }); // Meal tracker: { balance: number, mealLog: [{ date: string, count: number }] }
+  const [mealTracker, setMealTracker] = useState({ balance: 0, mealLog: [] }); // Meal tracker
+  const [showDownload, setShowDownload] = useState(false);
 
 
   const handleNumericInput = (val, setter, field = null) => {
@@ -1457,6 +1496,31 @@ const App = () => {
                   {/* Tutorial Popup Overlay */}
                   {!tutorialComplete && <TutorialPopup user={user} onComplete={finishTutorial} />}
 
+                  {/* Download Button (Top Left) */}
+                  <div className="absolute top-0 left-0 z-10 p-2">
+                    <button
+                      onClick={() => setShowDownload(true)}
+                      className="p-2 bg-indigo-950/30 hover:bg-white/10 rounded-xl text-indigo-400 hover:text-white transition-all backdrop-blur-sm border border-white/5 shadow-lg group"
+                      title="Download App"
+                    >
+                      <Download size={20} className="group-hover:scale-110 transition-transform" />
+                    </button>
+                  </div>
+
+                  {showDownload && (
+                    <DownloadPopup
+                      onSelect={(platform) => {
+                        const baseUrl = "https://github.com/meneon114/Budget-Buddy-Mobile/releases/latest/download/";
+                        const fileName = platform === 'windows' ? "budget-buddy-setup.exe" : "budget-buddy.apk";
+                        const link = document.createElement('a');
+                        link.href = baseUrl + fileName;
+                        link.click();
+                        setShowDownload(false);
+                      }}
+                      onCancel={() => setShowDownload(false)}
+                    />
+                  )}
+
                   {/* Top Stats Corners */}
 
 
@@ -1577,8 +1641,8 @@ const App = () => {
                   {monthlyDues.length > 0 && (
                     <div className="w-full mb-2">
                       <p className="text-[9px] font-black text-indigo-300/60 uppercase tracking-[0.3em] mb-2 px-1 text-center">Monthly Dues</p>
-                      <div className="w-full overflow-x-auto whitespace-nowrap scrollbar-hide px-1 py-1 flex justify-center">
-                        <div className="inline-flex gap-2">
+                      <div className="w-full overflow-x-auto whitespace-nowrap scrollbar-hide px-1 py-1 flex">
+                        <div className="inline-flex gap-2 mx-auto">
                           {monthlyDues
                             .map(d => {
                               const today = new Date(); today.setHours(0, 0, 0, 0);
