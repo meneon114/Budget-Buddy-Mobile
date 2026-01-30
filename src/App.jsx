@@ -32,9 +32,7 @@ import {
   Share2,
   RotateCcw,
   Sparkles,
-  Github,
-  Monitor,
-  Smartphone
+  Github
 } from 'lucide-react';
 
 const CATEGORY_ICONS = {
@@ -1151,41 +1149,6 @@ const GlobalPopup = ({ type, message, onConfirm, onCancel }) => {
 };
 
 
-const DownloadPopup = ({ onSelect, onCancel }) => {
-  return (
-    <div className="fixed inset-0 z-[250] flex items-center justify-center p-6 bg-[#0c0a1f]/80 backdrop-blur-md animate-in fade-in duration-300">
-      <div className="w-full max-w-xs bg-[#0c0a1f] border border-indigo-500/30 p-8 rounded-[2rem] shadow-2xl text-center relative overflow-hidden animate-in zoom-in-95 duration-300">
-        <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 animate-bounce">
-            <Download size={32} />
-          </div>
-        </div>
-        <h3 className="text-xl font-black text-white uppercase tracking-tight mb-6">Download App</h3>
-        <div className="space-y-3">
-          <button
-            onClick={() => onSelect('windows')}
-            className="w-full py-4 bg-indigo-950/30 hover:bg-indigo-900/40 text-white font-black rounded-xl text-xs uppercase tracking-widest border border-indigo-500/20 flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95"
-          >
-            <Monitor size={16} /> Windows (EXE)
-          </button>
-          <button
-            onClick={() => onSelect('android')}
-            className="w-full py-4 bg-indigo-950/30 hover:bg-indigo-900/40 text-white font-black rounded-xl text-xs uppercase tracking-widest border border-indigo-500/20 flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95"
-          >
-            <Smartphone size={16} /> Android (APK)
-          </button>
-          <button
-            onClick={onCancel}
-            className="w-full py-3 mt-2 text-[10px] font-black text-indigo-500/50 uppercase tracking-widest hover:text-white transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const App = () => {
   const [view, setView] = useState('onboarding');
   /* Scroll to top when view changes */
@@ -1204,7 +1167,6 @@ const App = () => {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [popup, setPopup] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null, onCancel: null }); // Global Popup State
   const [mealTracker, setMealTracker] = useState({ balance: 0, mealLog: [] }); // Meal tracker
-  const [showDownload, setShowDownload] = useState(false);
 
 
   const handleNumericInput = (val, setter, field = null) => {
@@ -1496,39 +1458,30 @@ const App = () => {
                   {/* Tutorial Popup Overlay */}
                   {!tutorialComplete && <TutorialPopup user={user} onComplete={finishTutorial} />}
 
-                  {/* Download Button (Top Left) */}
-                  <div className="absolute top-0 left-0 z-10 p-2">
-                    <button
-                      onClick={() => setShowDownload(true)}
-                      className="p-2 bg-indigo-950/30 hover:bg-white/10 rounded-xl text-indigo-400 hover:text-white transition-all backdrop-blur-sm border border-white/5 shadow-lg group"
-                      title="Download App"
-                    >
-                      <Download size={20} className="group-hover:scale-110 transition-transform" />
-                    </button>
-                  </div>
-
-                  {showDownload && (
-                    <DownloadPopup
-                      onSelect={(platform) => {
-                        const baseUrl = "https://github.com/meneon114/Budget-Buddy-Mobile/releases/latest/download/";
-                        const fileName = platform === 'windows' ? "budget-buddy-setup.exe" : "budget-buddy.apk";
-                        const link = document.createElement('a');
-                        link.href = baseUrl + fileName;
-                        link.click();
-                        setShowDownload(false);
-                      }}
-                      onCancel={() => setShowDownload(false)}
-                    />
-                  )}
-
                   {/* Top Stats Corners */}
 
 
-                  <div className="flex flex-col items-center gap-1">
+                  <div className="flex flex-col items-center gap-1 z-20 relative">
                     <p className="theme-text text-[11px] font-black uppercase tracking-[0.3em] flex items-center gap-2 neon-glow-theme">
                       <Star size={14} className="animate-pulse theme-text" /> Welcome back, {user.name}
                     </p>
 
+                    <button
+                      onClick={() => {
+                        const link = document.createElement('a');
+                        link.href = "https://github.com/meneon114/Budget-Buddy-Mobile/releases/latest/download/budget-buddy.apk";
+                        link.click();
+                      }}
+                      className="mt-3 mobile-only group relative px-5 py-2 rounded-full bg-gradient-to-r from-indigo-950/80 to-indigo-900/80 border border-white/10 shadow-[0_0_20px_rgba(79,70,229,0.15)] hover:shadow-[0_0_30px_rgba(79,70,229,0.3)] hover:border-indigo-400/30 transition-all hover:-translate-y-0.5 active:translate-y-0 overflow-hidden"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-200%] group-hover:animate-[shimmer_1.5s_infinite]" />
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-1 rounded-full bg-emerald-500/20 text-emerald-400">
+                          <Download size={10} strokeWidth={3} />
+                        </div>
+                        <span className="text-[10px] font-black text-white uppercase tracking-widest group-hover:text-indigo-200 transition-colors">Download App</span>
+                      </div>
+                    </button>
                   </div>
 
                   <div className="flex justify-center -my-4 sm:my-0 scale-[0.65] sm:scale-75 origin-center">
