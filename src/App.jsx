@@ -30,7 +30,8 @@ import {
   CheckCircle,
   Star,
   Share2,
-  RotateCcw
+  RotateCcw,
+  Sparkles
 } from 'lucide-react';
 
 const CATEGORY_ICONS = {
@@ -512,15 +513,9 @@ const OnboardingView = ({ user, setUser, handleNumericInput, onComplete, isEditi
             <input type="text" required placeholder="ALEX" className="bg-transparent w-full text-white placeholder:text-indigo-900/50 outline-none font-bold uppercase text-sm" value={user.name} onChange={e => setUser({ ...user, name: e.target.value.toUpperCase() })} />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-indigo-950/30 rounded-xl p-3 border border-white/5">
-              <label className="text-[9px] font-black theme-text uppercase tracking-widest mb-1 block">Monthly Income</label>
-              <input type="text" inputMode="decimal" required placeholder="25000" className="bg-transparent w-full text-white placeholder:text-indigo-900/50 outline-none font-bold text-sm" value={user.income} onChange={e => handleNumericInput(e.target.value, setUser, 'income')} />
-            </div>
-            <div className="bg-indigo-950/30 rounded-xl p-3 border border-white/5">
-              <label className="text-[9px] font-black theme-text uppercase tracking-widest mb-1 block">Savings Goal</label>
-              <input type="text" inputMode="decimal" required placeholder="5000" className="bg-transparent w-full text-white placeholder:text-indigo-900/50 outline-none font-bold text-sm" value={user.savingsGoal} onChange={e => handleNumericInput(e.target.value, setUser, 'savingsGoal')} />
-            </div>
+          <div className="bg-indigo-950/30 rounded-xl p-3 border border-white/5">
+            <label className="text-[9px] font-black theme-text uppercase tracking-widest mb-1 block">Monthly Income</label>
+            <input type="text" inputMode="decimal" required placeholder="25000" className="bg-transparent w-full text-white placeholder:text-indigo-900/50 outline-none font-bold text-sm" value={user.income} onChange={e => handleNumericInput(e.target.value, setUser, 'income')} />
           </div>
 
           <div className="space-y-3 pt-2">
@@ -539,7 +534,7 @@ const OnboardingView = ({ user, setUser, handleNumericInput, onComplete, isEditi
     <div className="mt-8 px-4 w-full max-w-sm mx-auto z-50">
       <button
         onClick={onComplete}
-        disabled={!user.name || !user.income || !user.savingsGoal}
+        disabled={!user.name || !user.income}
         className="w-full py-4 theme-bg text-white font-black rounded-[2rem] shadow-[0_10px_30px_rgba(0,0,0,0.5)] border border-white/10 uppercase tracking-[0.2em] text-xs hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2"
       >
         {isEditing ? "Save Changes" : "Start Budgeting"} <ChevronRight size={16} />
@@ -628,41 +623,64 @@ const SavingsView = ({ targets, setTargets, handleNumericInput, activeId, setAct
     setAddingFundsTo(null);
   };
 
+  // Sort targets: active first, then incomplete goals, then completed
+  const sortedTargets = [...targets].sort((a, b) => {
+    if (a.id === activeId) return -1;
+    if (b.id === activeId) return 1;
+    const aComplete = a.current >= a.target;
+    const bComplete = b.current >= b.target;
+    if (aComplete && !bComplete) return 1;
+    if (!aComplete && bComplete) return -1;
+    return 0;
+  });
+
   return (
     <div className="w-full flex flex-col pt-0 animate-in fade-in">
       <h2 className="text-2xl sm:text-3xl font-black text-white mb-6 tracking-tighter uppercase px-2 text-center">Savings Goals</h2>
 
       <div className="w-full space-y-4 pb-10">
-        {targets.map(t => (
-          <div key={t.id} className="cute-card p-6 shadow-lg relative overflow-hidden">
-            <div className="flex justify-between items-end mb-2">
-              <div>
-                <h3 className="text-lg font-black text-white uppercase tracking-tight flex items-center gap-2">
-                  {t.name}
-                  {activeId === t.id && <span className="text-[9px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1"><Target size={10} /> ACTIVE</span>}
-                </h3>
-                <p className="text-[10px] font-bold theme-text uppercase tracking-widest">Target: ৳{t.target.toLocaleString()}</p>
-              </div>
-              <p className="text-xl font-black text-white font-mono">৳{t.current.toLocaleString()}</p>
-            </div>
-            <div className="w-full bg-black/40 h-3 rounded-full overflow-hidden shadow-inner mb-4">
-              <div className="h-full theme-bg shadow-[0_0_15px_var(--theme-glow)] transition-all duration-1000" style={{ width: `${Math.min((t.current / t.target) * 100, 100)}%` }} />
-            </div>
-            <div className="flex gap-2">
-              <button onClick={() => setAddingFundsTo(t.id)} className="flex-1 py-2 bg-indigo-950/40 text-indigo-300 font-black rounded-xl text-[9px] uppercase tracking-widest hover:text-white transition-colors border-none">
-                + Add Funds
-              </button>
-              <button onClick={() => setActiveId(t.id)} className={`p-2 rounded-xl transition-colors ${activeId === t.id ? 'theme-bg text-white shadow-lg' : 'text-indigo-500 hover:text-white hover:bg-indigo-950/40'}`} title="Set as Active Goal">
-                <Target size={16} />
-              </button>
-              <button onClick={() => setTargets(targets.filter(x => x.id !== t.id))} className="p-2 text-rose-500 hover:bg-rose-950/20 rounded-xl transition-colors">
-                <Trash2 size={16} />
-              </button>
-            </div>
-          </div>
-        ))}
+        {sortedTargets.filter(t => t.id !== 'future-fund' && t.target !== Infinity && isFinite(t.target)).map(t => {
+          const isCompleted = t.current >= t.target;
 
-        {targets.length === 0 && (
+          return (
+            <div key={t.id} className={`cute-card p-6 shadow-lg relative overflow-hidden ${isCompleted ? 'ring-2 ring-emerald-500/30 bg-emerald-950/10' : ''}`}>
+              {isCompleted && (
+                <div className="absolute top-3 right-3">
+                  <CheckCircle size={20} className="text-emerald-400" />
+                </div>
+              )}
+              <div className="flex justify-between items-end mb-2">
+                <div>
+                  <h3 className="text-lg font-black text-white uppercase tracking-tight flex items-center gap-2">
+                    {t.name}
+                    {activeId === t.id && <span className="text-[9px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1"><Target size={10} /> ACTIVE</span>}
+                    {isCompleted && <span className="text-[9px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">COMPLETED</span>}
+                  </h3>
+                  <p className="text-[10px] font-bold theme-text uppercase tracking-widest">
+                    Target: ৳{t.target.toLocaleString()} • {t.days || 30} days • ৳{Math.round((t.target - t.current) / (t.days || 30))}/day
+                  </p>
+                </div>
+                <p className="text-xl font-black text-white font-mono">৳{t.current.toLocaleString()}</p>
+              </div>
+              <div className="w-full bg-black/40 h-3 rounded-full overflow-hidden shadow-inner mb-4">
+                <div className={`h-full transition-all duration-1000 ${isCompleted ? 'bg-gradient-to-r from-emerald-500 to-teal-400' : 'theme-bg shadow-[0_0_15px_var(--theme-glow)]'}`} style={{ width: `${Math.min((t.current / t.target) * 100, 100)}%` }} />
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => setAddingFundsTo(t.id)} className="flex-1 py-2 bg-indigo-950/40 text-indigo-300 font-black rounded-xl text-[9px] uppercase tracking-widest hover:text-white transition-colors border-none">
+                  + Add Funds
+                </button>
+                <button onClick={() => setActiveId(t.id)} className={`p-2 rounded-xl transition-colors ${activeId === t.id ? 'theme-bg text-white shadow-lg' : 'text-indigo-500 hover:text-white hover:bg-indigo-950/40'}`} title="Set as Active Goal">
+                  <Target size={16} />
+                </button>
+                <button onClick={() => setTargets(targets.filter(x => x.id !== t.id))} className="p-2 text-rose-500 hover:bg-rose-950/20 rounded-xl transition-colors">
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+
+        {targets.filter(t => t.id !== 'future-fund' && t.target !== Infinity && isFinite(t.target)).length === 0 && (
           <div className="text-center opacity-40 py-10">
             <PiggyBank size={64} className="mx-auto mb-4 animate-bounce" />
             <p className="font-black uppercase text-[10px] tracking-[0.4em]">No Goals Yet</p>
@@ -1162,15 +1180,22 @@ const App = () => {
     const monthlyIncome = parseFloat(user.income) || 0;
     const monthlyGoal = parseFloat(user.savingsGoal) || 0;
     const totalDues = monthlyDues.reduce((a, b) => a + (parseFloat(b.amount) || 0), 0);
-    const dailyBudget = Math.max(0, monthlyIncome - monthlyGoal - totalDues) / 30;
+    const cateringCost = user.cateringEnabled ? (parseFloat(user.cateringMonthlyCost) || 0) : 0;
+    const dailyBudget = Math.max(0, monthlyIncome - totalDues - cateringCost) / 30;
+    const dailySaveTarget = monthlyGoal / 30; // Amount user should save per day
 
     while (currentDate < endDate) {
       const dStr = currentDate.toISOString().split('T')[0];
-      // If no expenses for this day, rollover full daily budget
+      // Calculate how much of the usable budget wasn't spent
       const spentOnDay = expenses.filter(e => e.date.startsWith(dStr)).reduce((a, b) => a + b.amount, 0);
+      const usableBudget = dailyBudget - dailySaveTarget;
 
-      if (spentOnDay === 0) {
-        totalRollover += dailyBudget;
+      // If spent less than usable budget, rollover the difference + the daily save target
+      if (spentOnDay < usableBudget) {
+        totalRollover += (usableBudget - spentOnDay) + dailySaveTarget;
+      } else if (spentOnDay < dailyBudget) {
+        // Spent more than usable but less than full budget - save what's left
+        totalRollover += dailyBudget - spentOnDay;
       }
       currentDate.setDate(currentDate.getDate() + 1);
     }
@@ -1187,11 +1212,37 @@ const App = () => {
 
     setLastRolloverDate(today);
 
-  }, [isInitialized, lastRolloverDate, user.activeTargetId, user.income, user.savingsGoal, expenses, monthlyDues]);
+  }, [isInitialized, lastRolloverDate, user.activeTargetId, user.income, expenses, monthlyDues]);
 
+  // Auto-advance to next goal when current goal is completed
+  useEffect(() => {
+    if (!isInitialized || !user.activeTargetId) return;
 
+    const activeTarget = savingsTargets.find(t => t.id === user.activeTargetId);
+    if (!activeTarget) return;
 
+    // Check if goal is completed (reached or exceeded target)
+    if (activeTarget.current >= activeTarget.target) {
+      // Find next incomplete goal
+      const otherGoals = savingsTargets.filter(t =>
+        t.id !== activeTarget.id &&
+        t.current < t.target
+      );
 
+      const nextGoalId = otherGoals.length > 0 ? otherGoals[0].id : null;
+      const nextGoalName = otherGoals.length > 0 ? otherGoals[0].name : 'None';
+
+      // Show celebration and advance
+      setPopup({
+        isOpen: true,
+        type: 'alert',
+        message: `🎉 Congratulations!\n\nYou've completed "${activeTarget.name}"!${nextGoalId ? `\n\nNow saving to: ${nextGoalName}` : '\n\nSet a new savings goal to continue!'}`,
+        onConfirm: () => setPopup(prev => ({ ...prev, isOpen: false }))
+      });
+
+      setUser(prev => ({ ...prev, activeTargetId: nextGoalId }));
+    }
+  }, [isInitialized, savingsTargets, user.activeTargetId]);
 
 
   useEffect(() => {
@@ -1207,16 +1258,30 @@ const App = () => {
     const todayStr = now.toISOString().split('T')[0];
     const daysRemaining = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate() + 1;
     const monthlyIncome = parseFloat(user.income) || 0;
-    const monthlyGoal = parseFloat(user.savingsGoal) || 0;
+
+    // Get monthly goal from active savings target
+    const activeTarget = savingsTargets.find(t => t.id === user.activeTargetId);
+    const remainingToSave = activeTarget ? Math.max(0, activeTarget.target - activeTarget.current) : 0;
+    // Assume user wants to save within 30 days, or use remaining to save as the monthly goal
+    const monthlyGoal = remainingToSave;
+
     const totalDues = monthlyDues.reduce((a, b) => a + (parseFloat(b.amount) || 0), 0);
     const cateringCost = user.cateringEnabled ? (parseFloat(user.cateringMonthlyCost) || 0) : 0;
-    const totalDisp = Math.max(0, monthlyIncome - monthlyGoal - totalDues - cateringCost);
+    // Full disposable income (NOT minus savings goal - we show that via usable budget instead)
+    const totalDisp = Math.max(0, monthlyIncome - totalDues - cateringCost);
     const currMonthExp = expenses.filter(e => { const d = new Date(e.date); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear(); });
     const totalSpent = currMonthExp.reduce((a, b) => a + b.amount, 0);
     const spentToday = currMonthExp.filter(e => new Date(e.date).toDateString() === now.toDateString()).reduce((a, b) => a + b.amount, 0);
     const budgetAllocatedToday = Math.round(totalDisp / 30);
     const dailyRem = Math.round(budgetAllocatedToday - spentToday);
     const dailyProg = budgetAllocatedToday > 0 ? (dailyRem / budgetAllocatedToday) * 100 : 0;
+
+    // Calculate daily savings target using goal's specific days (or default to 30)
+    const goalDays = activeTarget?.days || 30;
+    const dailySaveTarget = Math.round(remainingToSave / goalDays);
+    // Usable budget = what user should actually spend if they want to save gradually
+    const usableBudget = Math.max(0, budgetAllocatedToday - dailySaveTarget);
+    const usableRemaining = Math.round(usableBudget - spentToday);
 
     let mood = 'happy';
     if (dailyRem <= 0) mood = 'passed_out';
@@ -1229,8 +1294,8 @@ const App = () => {
       return acc;
     }, {});
 
-    return { dailyBudget: budgetAllocatedToday, dailyRemaining: dailyRem, dailyProgress: dailyProg, mood, spentToday, totalSpentThisMonth: totalSpent, categoryTotals, todayStr, cateringCost };
-  }, [user, expenses, monthlyDues]);
+    return { dailyBudget: budgetAllocatedToday, dailyRemaining: dailyRem, dailyProgress: dailyProg, mood, spentToday, totalSpentThisMonth: totalSpent, categoryTotals, todayStr, cateringCost, dailySaveTarget, usableBudget, usableRemaining, monthlyGoal };
+  }, [user, expenses, monthlyDues, savingsTargets]);
 
   const activeTarget = savingsTargets.find(t => t.id === user.activeTargetId);
 
@@ -1348,15 +1413,7 @@ const App = () => {
                     <p className="theme-text text-[11px] font-black uppercase tracking-[0.3em] flex items-center gap-2 neon-glow-theme">
                       <Star size={14} className="animate-pulse theme-text" /> Welcome back, {user.name}
                     </p>
-                    <div className="mt-1 flex items-center gap-2 bg-indigo-950/60 px-4 py-1.5 rounded-full shadow-lg transition-colors duration-500" style={{
-                      borderColor: stats.mood === 'happy' ? '#34d399' : stats.mood === 'worried' ? '#fb923c' : stats.mood === 'critical' ? '#fb7185' : '#94a3b8',
-                      borderWidth: '1px'
-                    }}>
-                      <ShieldCheck size={14} className="transition-colors duration-500" style={{ color: stats.mood === 'happy' ? '#34d399' : stats.mood === 'worried' ? '#fb923c' : stats.mood === 'critical' ? '#fb7185' : '#94a3b8' }} />
-                      <p className="text-[9px] font-black uppercase tracking-widest font-bold transition-colors duration-500" style={{ color: stats.mood === 'happy' ? '#34d399' : stats.mood === 'worried' ? '#fb923c' : stats.mood === 'critical' ? '#fb7185' : '#94a3b8' }}>
-                        Status: {stats.mood === 'happy' ? 'Happy' : stats.mood === 'worried' ? 'Worried' : stats.mood === 'critical' ? 'Critical' : 'Passed Out'}
-                      </p>
-                    </div>
+
                   </div>
 
                   <div className="flex justify-center -my-4 sm:my-0 scale-[0.65] sm:scale-75 origin-center">
@@ -1366,10 +1423,10 @@ const App = () => {
                   <div className="cute-card p-5 sm:p-6 shadow-2xl relative overflow-hidden">
                     <p className="text-[9px] font-black theme-text uppercase tracking-[0.3em] mb-2 text-center opacity-70">Daily Budget</p>
 
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 mb-4">
+                    <div className="flex flex-col items-center justify-center gap-3 mb-6">
                       <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tighter font-mono break-all leading-tight">৳{stats.dailyRemaining.toFixed(2)}</h2>
 
-                      <div className="flex items-center gap-2 px-3 py-1 bg-indigo-950/40 rounded-full border border-orange-500/20 shadow-lg">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-950/40 rounded-full border border-orange-500/20 shadow-lg">
                         <span className="text-sm animate-pulse">🔥</span>
                         <span className="text-[9px] font-black text-transparent bg-clip-text bg-gradient-to-r from-orange-300 to-rose-300 uppercase tracking-widest leading-none">
                           {Object.values(streakData).filter(v => v).length} {Object.values(streakData).filter(v => v).length === 1 ? 'Day' : 'Days'}
@@ -1379,15 +1436,45 @@ const App = () => {
 
                     <div className="space-y-4 px-2">
                       <div className="w-full bg-black/60 h-6 sm:h-8 rounded-full p-1 sm:p-1.5 relative overflow-hidden shadow-inner">
+                        {/* Progress fill */}
                         <div
                           className={`h-full rounded-full transition-all duration-1000 ${stats.mood === 'passed_out' ? 'bg-gray-700' : 'theme-bg shadow-[0_0_20px_var(--theme-glow)]'}`}
                           style={{ width: `${Math.min(Math.max(stats.dailyProgress, 0), 100)}%` }}
                         />
+                        {/* Usable budget threshold line - marks where bar should stop shrinking */}
+                        {stats.monthlyGoal > 0 && stats.dailyBudget > 0 && (
+                          <div
+                            className="absolute top-0 bottom-0 flex flex-col items-center justify-center pointer-events-none"
+                            style={{ left: `${Math.min((stats.dailySaveTarget / stats.dailyBudget) * 100, 100)}%` }}
+                          >
+                            <div className="h-full w-0.5 border-l-2 border-dashed border-white/80" />
+                            <div className="absolute -top-5 bg-emerald-500/90 px-1.5 py-0.5 rounded text-[7px] font-black text-white uppercase tracking-wider whitespace-nowrap shadow-lg">
+                              Save Zone
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <div className="flex justify-between w-full text-[9px] font-black uppercase tracking-widest text-indigo-300 px-1 mt-1">
                         <span>Spent: ৳{stats.spentToday.toFixed(0)}</span>
                         <span>Budget: ৳{stats.dailyBudget.toFixed(0)}</span>
                       </div>
+
+                      {/* Usable Budget & Savings Tip */}
+                      {stats.monthlyGoal > 0 && (
+                        <div className="bg-emerald-950/30 border border-emerald-500/20 rounded-xl p-3 mt-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <PiggyBank size={14} className="text-emerald-400" />
+                              <span className="text-[9px] font-black text-emerald-300 uppercase tracking-widest">To Hit Your Goal</span>
+                            </div>
+                            <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Save ৳{stats.dailySaveTarget}/day</span>
+                          </div>
+                          <div className="flex items-center justify-between mt-2 pt-2 border-t border-emerald-500/10">
+                            <span className="text-[9px] font-black text-indigo-300 uppercase tracking-widest">Usable Today</span>
+                            <span className={`text-sm font-black font-mono ${stats.usableRemaining < 0 ? 'text-rose-400' : 'text-white'}`}>৳{stats.usableRemaining}</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Active Savings Goal in Island */}
@@ -1609,8 +1696,8 @@ const App = () => {
 
               {view === 'add-savings' && (
                 <AddSavingsInput
-                  onAdd={(name, target) => {
-                    setSavingsTargets([...savingsTargets, { id: Date.now(), name: name, target: parseFloat(target), current: 0 }]);
+                  onAdd={(name, target, days) => {
+                    setSavingsTargets([...savingsTargets, { id: Date.now(), name: name, target: parseFloat(target), current: 0, days: days }]);
                     setView('savings');
                   }}
                   onCancel={() => setView('savings')}
@@ -1639,7 +1726,6 @@ const App = () => {
                       <div className="flex items-center justify-between mb-3">
                         <div>
                           <p className="font-black text-white uppercase text-[10px] tracking-widest">Catering Tracker</p>
-                          <p className="text-[8px] text-indigo-400">Track prepaid meal balance</p>
                         </div>
                         <button
                           onClick={() => setUser(prev => ({ ...prev, cateringEnabled: !prev.cateringEnabled }))}
@@ -1767,6 +1853,7 @@ const AddExpenseInput = ({ onAdd, onCancel, handleNumericInput }) => {
 const AddSavingsInput = ({ onAdd, onCancel, handleNumericInput }) => {
   const [name, setName] = useState('');
   const [target, setTarget] = useState('');
+  const [days, setDays] = useState('30');
 
   return (
     <div className="w-full flex flex-col justify-center animate-in slide-in-from-bottom duration-500 pb-20">
@@ -1784,9 +1871,22 @@ const AddSavingsInput = ({ onAdd, onCancel, handleNumericInput }) => {
             <input type="text" inputMode="decimal" placeholder="TARGET AMOUNT" className="w-full bg-black/20 p-4 pl-8 rounded-2xl text-white font-bold text-sm outline-none focus:ring-1 ring-white/20 text-center placeholder:text-indigo-900" value={target} onChange={e => handleNumericInput(e.target.value, setTarget)} />
           </div>
 
+          <div className="relative">
+            <input type="text" inputMode="numeric" placeholder="DAYS TO COMPLETE" className="w-full bg-black/20 p-4 rounded-2xl text-white font-bold text-sm outline-none focus:ring-1 ring-white/20 text-center placeholder:text-indigo-900" value={days} onChange={e => handleNumericInput(e.target.value, setDays)} />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-500 font-bold text-xs uppercase">days</span>
+          </div>
+
+          {name && target && days && (
+            <div className="bg-emerald-950/30 border border-emerald-500/20 rounded-xl p-3 text-center">
+              <p className="text-[9px] font-black text-emerald-300 uppercase tracking-widest">
+                Save ৳{Math.round(parseFloat(target) / parseInt(days))}/day to reach your goal
+              </p>
+            </div>
+          )}
+
           <div className="flex gap-3 pt-4">
             <button onClick={onCancel} className="flex-1 py-4 bg-indigo-950/40 text-indigo-400 font-black rounded-2xl text-[10px] uppercase tracking-widest hover:text-white transition-colors">Cancel</button>
-            <button onClick={() => name && target && onAdd(name, target)} disabled={!name || !target} className="flex-[2] py-4 theme-bg text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none">Create Goal</button>
+            <button onClick={() => name && target && days && onAdd(name, target, parseInt(days))} disabled={!name || !target || !days} className="flex-[2] py-4 theme-bg text-white font-black rounded-2xl text-[10px] uppercase tracking-widest shadow-lg hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 disabled:pointer-events-none">Create Goal</button>
           </div>
         </div>
       </div>
