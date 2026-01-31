@@ -1470,7 +1470,10 @@ const App = () => {
                       onClick={() => {
                         const link = document.createElement('a');
                         link.href = "https://github.com/meneon114/Budget-Buddy-Mobile/releases/latest/download/budget-buddy.apk";
+                        link.setAttribute('download', 'budget-buddy.apk');
+                        document.body.appendChild(link);
                         link.click();
+                        document.body.removeChild(link);
                       }}
                       className="mt-3 mobile-only group relative px-5 py-2 rounded-full bg-gradient-to-r from-indigo-950/80 to-indigo-900/80 border border-white/10 shadow-[0_0_20px_rgba(79,70,229,0.15)] hover:shadow-[0_0_30px_rgba(79,70,229,0.3)] hover:border-indigo-400/30 transition-all hover:-translate-y-0.5 active:translate-y-0 overflow-hidden"
                     >
@@ -1791,7 +1794,7 @@ const App = () => {
 
                     {/* Catering Toggle */}
                     <div className="cute-card p-5 shadow-md">
-                      <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center justify-between">
                         <div>
                           <p className="font-black text-white uppercase text-[10px] tracking-widest">Catering Tracker</p>
                         </div>

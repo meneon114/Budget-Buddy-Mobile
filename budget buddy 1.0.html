@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+    <center>
+        <h1>BUDGET BUDDY</h1>
+        <hr>
+
+        <div id="pet_display">
+            STATUS: ALIVE
+        </div>
+        <br>
+
+        INCOME: <input type="number" id="inc"> <button onclick="setInc()">SET</button>
+        <br><br>
+
+        REMAINING: <span id="bal">???</span>
+        <hr>
+
+        ITEM: <input type="text" id="itm">
+        COST: <input type="number" id="cst">
+        <button onclick="add()">ADD</button>
+
+        <br><br>
+        <u>HISTORY:</u>
+        <ul id="list">
+        </ul>
+
+    </center>
+
+    <script>
+        var money = 0;
+        var left = 0;
+
+        function setInc() {
+            money = document.getElementById('inc').value;
+            left = money;
+            render();
+        }
+
+        function add() {
+            var c = document.getElementById('cst').value;
+            var i = document.getElementById('itm').value;
+
+            // logic is "broken" - doesn't check for valid numbers really well
+            left = left - c;
+
+            var li = document.createElement("li");
+            li.innerHTML = i + " ... " + c;
+            document.getElementById("list").appendChild(li);
+
+            render();
+        }
+
+        function render() {
+            document.getElementById('bal').innerText = left;
+
+            // Broken pet logic
+            if (left < 0) {
+                document.getElementById('pet_display').innerHTML = "<marquee>PET IS DEAD (DEBT)</marquee>";
+                document.body.style.backgroundColor = "red";
+            } else if (left < (money * 0.2)) {
+                document.getElementById('pet_display').innerText = "STATUS: DYING";
+            } else {
+                document.getElementById('pet_display').innerText = "STATUS: OK";
+                document.body.style.backgroundColor = "white";
+            }
+        }
+    </script>
+
+</body>
+
+</html>
