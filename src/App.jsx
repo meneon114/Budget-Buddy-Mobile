@@ -34,6 +34,7 @@ import {
   Sparkles,
   Github
 } from 'lucide-react';
+import { Analytics } from "@vercel/analytics/react";
 
 const CATEGORY_ICONS = {
   Meals: Utensils,
@@ -1893,6 +1894,7 @@ const App = () => {
           )}
         </main>
       </div >
+        <Analytics />
     </div >
   );
 };
